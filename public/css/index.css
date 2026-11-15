@@ -1,0 +1,24 @@
+/* ========================================
+1. Présentation de la page
+========================================= */
+
+.section_presentation {
+    text-align: center;
+}
+
+.section_presentation h1 {
+    margin: 0 0 1rem;
+}
+
+.section_presentation p {
+    margin: 0 auto;
+    max-width: 800px;
+    color: var(--texte_secondaire);
+    font-size: var(--taille_texte);
+}
+
+
+/* ========================================
+X. Responsive
+========================================= */
+
