@@ -1,0 +1,74 @@
+/* ========================================
+1. Présentation du réalisateur
+========================================= */
+
+.details_realisateur {
+    display: flex;
+    gap: 3rem;
+    width: 100%;
+    max-width: 1100px;
+    margin: 2rem auto;
+}
+
+.conteneur_portrait {
+    flex: 0 0 300px;
+}
+
+.portrait_realisateur {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+}
+
+.informations_realisateur {
+    flex: 1;
+    min-width: 0;
+}
+
+.nom_realisateur {
+    margin-top: 0;
+    font-size: var(--taille-h2);
+}
+
+.donnees_realisateur p {
+    margin: 0.5rem 0;
+}
+
+.biographie_realisateur {
+    margin-top: 2rem;
+}
+
+.biographie_realisateur h4 {
+    margin-bottom: 0.5rem;
+    color: var(--couleur_accent);
+}
+
+.biographie_realisateur p {
+    color: var(--texte_secondaire);
+}
+
+/* ========================================
+X. Responsive
+========================================= */
+
+@media (max-width: 750px) {
+
+    .details_realisateur {
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .conteneur_portrait {
+        flex: 0 1 auto;
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .informations_realisateur {
+        width: 100%;
+    }
+}
