@@ -1,0 +1,44 @@
+
+/* ========================================
+1. Navigation entre les catégories
+========================================= */
+
+.navigation_categories {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin: 2rem auto 4rem;
+}
+
+.lien_categorie {
+    padding: 0.75rem 2rem;
+    border: 2px solid var(--couleur_accent);
+    border-radius: 2rem;
+    background-color: var(--fond_carte);
+    color: var(--couleur_accent);
+    font-size: var(--taille_texte);
+    font-weight: var(--graisse_semi_grasse);
+    transition: background-color 0.5s ease, color 0.5s ease, transform 0.5s ease;
+}
+
+.lien_categorie:hover {
+    background-color: var(--couleur_accent);
+    color: var(--fond_carte);
+    text-decoration: none;
+}
+
+/* ========================================
+2. Responsive
+========================================= */
+
+@media (max-width: 750px) {
+
+    .navigation_categories {
+        gap: 1rem;
+        margin: 1.5rem auto 3rem;
+    }
+    .lien_categorie {
+        padding: 0.65rem 1.5rem;
+    }
+}

@@ -37,18 +37,22 @@
     --bordure: #D8C4A5;
 }
 
-/* Identification des liens */
+/* Identification des liens et boutons */
+a, button {
+    transition: transform 0.5s ease, text-decoration-color 0.5s ease;
+}
+
 a {
     color: inherit;
     text-decoration: none;
     display: inline-block;
-    transition: transform 0.2s ease, text-decoration-color 0.2s ease;
 }
-a:hover {
-    text-decoration: underline;
+
+a:hover, button:hover:not(:disabled) {
+    text-decoration: none;
     text-decoration-color: var(--couleur_accent);
     text-underline-offset: 5px;
-    transform: scale(1.05);
+    transform: scale(1.10);
 }
 
 /* Définition des h1 pour l'accessibilité */
@@ -157,13 +161,8 @@ main {
     flex: 1;
     height: 2px;
     margin-right: 5vw;
-    background: linear-gradient(
-            to right,
-            var(--couleur_accent),
-            transparent
-    );
+    background: linear-gradient(to right, var(--couleur_accent), transparent);
 }
-
 
 /* ========================================
 4. Cartes des films
@@ -177,7 +176,7 @@ main {
     background-color: var(--fond_carte);
     border: 1px solid var(--bordure);
     border-radius: 1rem;
-    transition: border-color 0.3s ease;
+    transition: border-color 0.5s ease;
 }
 
 .carte_film:hover {
@@ -241,15 +240,14 @@ main {
     font-size: var(--taille_bouton);
     font-weight: var(--graisse_semi_grasse);
     text-align: center;
-    transition: background-color 0.2s ease,
-    color 0.2s ease;
+    transition: background-color 0.5s ease, color 0.5s ease;
 }
 
 .lien_details_film:hover {
-    background-color: var(--fond_carte);
-    color: var(--couleur_accent);
+    border-color: var(--texte_principal);
+    color: var(--texte_principal);
     text-decoration: none;
-    transform: none;
+    transition: border-color 0.5s ease, color 0.5s ease, transform 0.5s ease;
 }
 
 /* ========================================
@@ -311,8 +309,8 @@ main {
     font-size: var(--taille_bouton);
     font-weight: var(--graisse_semi_grasse);
     cursor: pointer;
-    transition: background-color 0.2s ease,
-    color 0.2s ease;
+    transition: background-color 0.5s ease, color 0.5s ease;
+    text-decoration: none;
 }
 
 .bouton_recherche {
