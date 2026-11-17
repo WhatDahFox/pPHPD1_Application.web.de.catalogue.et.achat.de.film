@@ -74,11 +74,16 @@
                     <!-- Achat -->
                     <div class="achat_film">
                         <p class="prix_details_film"> 9,90 € </p>
-                        <button class="bouton_panier"
-                                type="button"
-                                disabled>
+                        <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="2">
+
+                        
+                            <button class="bouton_panier"
+                                type="submit"
+                                name="ajouter">
                             Ajouter au panier
-                        </button>
+                            </button>
+                        </form>
                     </div>
                     <!-- -------------------- -->
 

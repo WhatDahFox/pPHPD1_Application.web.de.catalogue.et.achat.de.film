@@ -38,13 +38,21 @@
                             Résumé du film affiché sur trois lignes
                             maximum pour conserver une carte homogène.
                         </p>
-                        <p class="prix_film"> 9,90 € </p>
+                        <p class="prix_film"> 12,90 € </p>
                         <a class="lien_details_film" href="movie.php">
                             Voir les détails du film
                         </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
+                        <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="1">
+                        
+                            <button class="bouton_panier"
+                                    type= "submit"
+                                    name="ajouter">
+                                    Ajouter au Panier
+
+                            </button>
+                        </form>
+                        
                     </div>
                 </article>
                 <!-- ----------------------------------------- -->
@@ -61,9 +69,16 @@
                         <a class="lien_details_film" href="movie.php">
                             Voir les détails du film
                         </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
+                       <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="1">
+                        
+                            <button class="bouton_panier"
+                                    type= "submit"
+                                    name="ajouter">
+                                    Ajouter au Panier
+
+                            </button>
+                        </form>
                     </div>
                 </article>
                 <!-- ----------------------------------------- -->
@@ -80,9 +95,16 @@
                         <a class="lien_details_film" href="movie.php">
                             Voir les détails du film
                         </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
+                       <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="2">
+                        
+                            <button class="bouton_panier"
+                                    type= "submit"
+                                    name="ajouter">
+                                    Ajouter au Panier
+
+                            </button>
+                        </form>
                     </div>
                 </article>
                 <!-- ----------------------------------------- -->
@@ -99,9 +121,16 @@
                         <a class="lien_details_film" href="movie.php">
                             Voir les détails du film
                         </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
+                        <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="2">
+                        
+                            <button class="bouton_panier"
+                                    type= "submit"
+                                    name="ajouter">
+                                    Ajouter au Panier
+
+                            </button>
+                        </form>
                     </div>
                 </article>
                 <!-- ----------------------------------------- -->
@@ -118,9 +147,16 @@
                         <a class="lien_details_film" href="movie.php">
                             Voir les détails du film
                         </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
+                        <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="2">
+                        
+                            <button class="bouton_panier"
+                                    type= "submit"
+                                    name="ajouter">
+                                    Ajouter au Panier
+
+                            </button>
+                        </form>
                     </div>
                 </article>
                 <!-- ----------------------------------------- -->
