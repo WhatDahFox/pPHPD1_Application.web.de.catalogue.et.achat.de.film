@@ -1,0 +1,99 @@
+/* ========================================
+1. Formulaire d'inscription
+========================================= */
+
+.section_inscription {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.formulaire_inscription {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 450px;
+    padding: 2rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+    box-sizing: border-box;
+}
+
+.formulaire_inscription h2 {
+    margin: 0;
+    color: var(--texte_principal);
+    text-align: center;
+    font-size: var(--taille-h2);
+}
+
+.champ_inscription {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.champ_inscription label {
+    font-weight: var(--graisse_semi_grasse);
+}
+
+.champ_inscription input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--bordure);
+    border-radius: 0.5rem;
+    background-color: #FFFFFF;
+    color: var(--texte_principal);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_texte);
+    box-sizing: border-box;
+}
+
+.champ_inscription input:focus {
+    border-color: var(--couleur_accent);
+    outline-color: var(--couleur_accent);
+}
+
+.bouton_inscription {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--texte_principal);
+    border-radius: 0.5rem;
+    background-color: var(--texte_principal);
+    color: var(--fond_carte);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_bouton);
+    font-weight: var(--graisse_semi_grasse);
+    cursor: pointer;
+}
+
+.bouton_inscription:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lien_connexion {
+    margin: 0;
+    text-align: center;
+    color: var(--texte_secondaire);
+}
+
+.lien_connexion a {
+    color: var(--couleur_accent);
+    font-weight: var(--graisse_semi_grasse);
+}
+
+/* ========================================
+X. Responsive
+========================================= */
+
+@media (max-width: 750px) {
+
+    .section_inscription {
+        margin-top: 1.5rem;
+    }
+
+    .formulaire_inscription {
+        padding: 1.5rem;
+    }
+}
