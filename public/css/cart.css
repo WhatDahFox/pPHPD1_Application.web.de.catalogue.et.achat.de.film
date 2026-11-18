@@ -1,0 +1,154 @@
+/* ========================================
+1. Liste des films du panier
+========================================= */
+
+.liste_panier {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 2rem auto;
+}
+
+.ligne_panier {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+}
+
+.affiche_panier {
+    width: 120px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+.informations_panier {
+    flex: 1;
+    min-width: 0;
+}
+
+.informations_panier p {
+    color: var(--texte_secondaire);
+}
+
+.quantite_panier {
+    width: 65px;
+    padding: 0.5rem;
+    border: 1px solid var(--bordure);
+    border-radius: 0.5rem;
+    background-color: var(--fond_principal);
+    color: var(--texte_principal);
+    font-size: var(--taille_texte);
+}
+
+.actions_panier {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1.5rem;
+}
+
+.sous_total_panier {
+    margin: 0;
+    color: var(--couleur_accent);
+    font-size: var(--taille_carte);
+    font-weight: var(--graisse_grasse);
+}
+
+.bouton_supprimer {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--couleur_accent);
+    border-radius: 0.5rem;
+    background-color: var(--couleur_accent);
+    color: var(--fond_carte);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_bouton);
+    cursor: pointer;
+}
+
+/* ========================================
+2. Récapitulatif du panier
+========================================= */
+
+.recapitulatif_panier {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+}
+
+.recapitulatif_panier p {
+    margin: 0;
+}
+
+.total_panier {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: var(--taille-h2);
+}
+
+.total_panier span {
+    color: var(--couleur_accent);
+    font-weight: var(--graisse_grasse);
+}
+
+.bouton_valider {
+    align-self: flex-end;
+    padding: 0.75rem 2rem;
+    border: 1px solid var(--texte_principal);
+    border-radius: 0.5rem;
+    background-color: var(--texte_principal);
+    color: var(--fond_carte);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_bouton);
+    cursor: pointer;
+}
+
+.bouton_supprimer:disabled,
+.bouton_valider:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
+X. Responsive
+========================================= */
+
+@media (max-width: 750px) {
+
+    .ligne_panier {
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .affiche_panier {
+        width: 90px;
+    }
+
+    .actions_panier {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .recapitulatif_panier {
+        padding: 1.5rem;
+    }
+
+    .bouton_valider {
+        align-self: stretch;
+    }
+}
