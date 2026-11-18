@@ -1,0 +1,99 @@
+/* ========================================
+1. Formulaire de connexion
+========================================= */
+
+.section_connexion {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
+.formulaire_connexion {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 450px;
+    padding: 2rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+    box-sizing: border-box;
+}
+
+.formulaire_connexion h2 {
+    margin: 0;
+    color: var(--texte_principal);
+    text-align: center;
+    font-size: var(--taille-h2);
+}
+
+.champ_connexion {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.champ_connexion label {
+    font-weight: var(--graisse_semi_grasse);
+}
+
+.champ_connexion input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--bordure);
+    border-radius: 0.5rem;
+    background-color: var(--fond_principal);
+    color: var(--texte_principal);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_texte);
+    box-sizing: border-box;
+}
+
+.champ_connexion input:focus {
+    border-color: var(--couleur_accent);
+    outline-color: var(--couleur_accent);
+}
+
+.bouton_connexion {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--texte_principal);
+    border-radius: 0.5rem;
+    background-color: var(--texte_principal);
+    color: var(--fond_carte);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_bouton);
+    font-weight: var(--graisse_semi_grasse);
+    cursor: pointer;
+}
+
+.bouton_connexion:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.lien_inscription {
+    margin: 0;
+    text-align: center;
+    color: var(--texte_secondaire);
+}
+
+.lien_inscription a {
+    color: var(--couleur_accent);
+    font-weight: var(--graisse_semi_grasse);
+}
+
+/* ========================================
+X. Responsive
+========================================= */
+
+@media (max-width: 750px) {
+
+    .section_connexion {
+        margin-top: 1.5rem;
+    }
+
+    .formulaire_connexion {
+        padding: 1.5rem;
+    }
+}
