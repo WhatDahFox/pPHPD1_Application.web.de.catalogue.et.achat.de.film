@@ -125,7 +125,7 @@
 X. Responsive
 ========================================= */
 
-@media (max-width: 750px) {
+@media (max-width: 870px) {
 
     .ligne_panier {
         flex-wrap: wrap;

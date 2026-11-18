@@ -94,7 +94,7 @@ h1 {
     display: block;
     width: clamp(100px, 12vw, 150px);
     height: auto;
-    margin: 1vw 0 1vw 5vw;
+    margin: 1vw 0 1vw 3vw;
     object-fit: contain;
 }
 
@@ -395,7 +395,7 @@ input:focus-visible {
 X. Responsive
 ========================================= */
 
-@media (max-width: 750px) {
+@media (max-width: 870px) {
 
     .header {
         flex-direction: column;
