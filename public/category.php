@@ -20,9 +20,9 @@
                             )
                     ORDER BY annee_de_sortie DESC, id_film DESC");
 
-            $requete->execute(["categorie" => $categorieSelectionnee]);
+    $requete->execute(["categorie" => $categorieSelectionnee]);
 
-            $films = $requete -> fetchAll(PDO::FETCH_ASSOC);
+    $films = $requete -> fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 
