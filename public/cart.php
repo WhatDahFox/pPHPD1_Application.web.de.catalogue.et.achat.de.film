@@ -137,6 +137,18 @@
         $filmsPanier = [];
     }
 
+    // Calcul du nombre d'articles et du montant total
+    $nombreArticles = 0;
+    $totalPanier = 0;
+
+    foreach ($filmsPanier as $film) {
+        $quantite = (int) $film["quantite"];
+        $prix = (float) $film["prix"];
+
+        $nombreArticles += $quantite;
+        $totalPanier += $prix * $quantite;
+    }
+
 ?>
 
 <!doctype html>
@@ -224,10 +236,10 @@
                 <section class="section_page section_total_panier">
                     <h2 class="titre_section"> Récapitulatif </h2>
                     <div class="recapitulatif_panier">
-                        <p> <strong> Nombre d'articles : </strong> 6 </p>
+                        <p> <strong> Nombre d'articles : </strong> <?= $nombreArticles ?> </p>
                         <p class="total_panier">
                             <strong> Total : </strong>
-                            <span> 120 € </span>
+                            <span> <?= number_format($totalPanier, 2, ",", " ") ?> € </span>
                         </p>
                         <button class="bouton_valider" type="button" disabled> Valider le panier </button>
                     </div>
