@@ -15,6 +15,10 @@
     $requeteIdFilm->execute(["id_film" => $idFilm]);
     $ficheFilm = $requeteIdFilm->fetch(PDO::FETCH_ASSOC);
 
+    if (!$ficheFilm) {
+        http_response_code(404);        // Gestion d'une absence de film
+    }
+
     // Récupération des catégories du film
 
     $requeteCategorie = $pdo->prepare(
@@ -58,7 +62,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> <?= htmlspecialchars($ficheFilm["titre"], ENT_QUOTES, 'UTF-8') ?> | Bob'ines </title>
+    <title>
+        <?= $ficheFilm
+                ? htmlspecialchars($ficheFilm["titre"], ENT_QUOTES, 'UTF-8')
+                : "Film introuvable"
+        ?> | Bob'ines
+    </title>
     <link rel="stylesheet" href="./css/common.css">
     <link rel="stylesheet" href="./css/movie.css">
 </head>
@@ -70,6 +79,19 @@
     </header>
 
     <main>
+
+        <?php if ($ficheFilm === false): ?>
+            <section class="section_page section_introuvable">
+                <h1> Film introuvable </h1>
+                <img
+                        class="image_introuvable"
+                        src="./images/film_introuvable.png"
+                        alt="Film introuvable"
+                >
+                <p> <a class="lien_retour" href="index.php"> Retour au catalogue </a> </p>
+            </section>
+        <?php else: ?>
+
         <h1> Fiche du film </h1>
 
         <!-- =================================
@@ -146,6 +168,7 @@
                 </div>
             </article>
         </section>
+        <?php endif; ?>
     </main>
 
     <footer class="bloc footer">

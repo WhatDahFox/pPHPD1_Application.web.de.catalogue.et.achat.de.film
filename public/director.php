@@ -15,6 +15,10 @@
     $requeteRealisateur->execute(["id_realisateur" => $idRealisateur]);
     $ficheRealisateur = $requeteRealisateur->fetch(PDO::FETCH_ASSOC);
 
+    if (!$ficheRealisateur) {
+        http_response_code(404);        // Gestion d'une absence de réalisateur
+    }
+
     // Récupération de la filmographie du réalisateur
 
     $requeteFilmographie = $pdo->prepare(
@@ -37,7 +41,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> <?= htmlspecialchars($ficheRealisateur["prenom"] . " " . $ficheRealisateur["nom"], ENT_QUOTES, 'UTF-8') ?> | Bob'ines </title>
+    <title>
+        <?= $ficheRealisateur
+                ? htmlspecialchars(
+                        $ficheRealisateur["prenom"] . " " . $ficheRealisateur["nom"],
+                        ENT_QUOTES,
+                        'UTF-8'
+                )
+                : "Réalisateur introuvable" ?> | Bob'ines
+    </title>
     <link rel="stylesheet" href="./css/common.css">
     <link rel="stylesheet" href="./css/director.css">
 </head>
@@ -49,6 +61,19 @@
     </header>
 
     <main>
+
+        <?php if ($ficheRealisateur === false): ?>
+            <section class="section_page section_introuvable">
+                <h1> Réalisateur introuvable </h1>
+                <img
+                        class="image_introuvable"
+                        src="./images/realisateur_introuvable.png"
+                        alt="Réalisateur introuvable"
+                >
+                <p> <a class="lien_retour" href="index.php"> Retour au catalogue </a></p>
+            </section>
+        <?php else: ?>
+
         <h1> Fiche du réalisateur </h1>
 
         <!-- =================================
@@ -122,6 +147,7 @@
                 <!-- ----------------------------------------- -->
             </div>
         </section>
+        <?php endif; ?>
     </main>
 
     <footer class="bloc footer">

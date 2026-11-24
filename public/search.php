@@ -4,12 +4,15 @@
     require_once __DIR__ . "/../config/database.php";
 
     // Récupération de la recherche via l'URL
-    $termeRecherche = $_GET["recherche"] ?? "";
-    $rechercheSQL = "%" . $termeRecherche . "%";        // Permet l'approximation dans la recherche
+    $termeRecherche = trim($_GET["recherche"] ?? "");
+    $filmsRecherches = [];
 
-    // Récupération des films de la recherche
-    $recherche = $pdo->prepare(
-            "SELECT *
+    if ($termeRecherche !== "") {
+        $rechercheSQL = "%" . $termeRecherche . "%";        // Permet l'approximation dans la recherche
+
+        // Récupération des films de la recherche
+        $recherche = $pdo->prepare(
+                "SELECT *
                     FROM film
                     INNER JOIN realisateur
                         ON film.id_realisateur = realisateur.id_realisateur
@@ -18,13 +21,15 @@
                         OR prenom LIKE :prenom
                     ORDER BY annee_de_sortie DESC, id_film DESC;");
 
-    $recherche->execute([
-            "titre" => $rechercheSQL,
-            "nom" => $rechercheSQL,
-            "prenom" => $rechercheSQL
-    ]);
+        $recherche->execute([
+                "titre" => $rechercheSQL,
+                "nom" => $rechercheSQL,
+                "prenom" => $rechercheSQL
+        ]);
 
-    $filmsRecherches = $recherche->fetchAll(PDO::FETCH_ASSOC);
+        $filmsRecherches = $recherche->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 ?>
 
 <!doctype html>
@@ -71,7 +76,18 @@
         ===================================== -->
 
         <section class="section_page section_resultats">
-            <h2 class="titre_section"> Résultats de la recherche pour :
+            <?php if ($termeRecherche === ""): ?>
+                <h2 class="titre_section"> Résultats de la recherche </h2>
+                <p> Veuillez saisir un terme de recherche. </p>
+            <?php elseif (empty($filmsRecherches)): ?>
+                <h2 class="titre_section"> Aucun résultat </h2>
+                <p>
+                    Aucun film trouvé pour :
+                    <?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>
+                </p>
+            <?php else: ?>
+            <h2 class="titre_section">
+                Résultats de la recherche pour :
                 <?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>
             </h2>
             <div class="liste_films">
@@ -108,6 +124,7 @@
                 <?php endforeach; ?>
                 <!-- ----------------------------------------- -->
             </div>
+            <?php endif; ?>
         </section>
 
     </main>
