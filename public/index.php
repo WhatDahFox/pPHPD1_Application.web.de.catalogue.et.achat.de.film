@@ -83,7 +83,7 @@
         2. Recherche de films ou réalisateurs
         ===================================== -->
         <section class="section_page section_recherche">
-            <form class="formulaire_recherche" action="search.php" method="get" role="search">
+            <form class="formulaire_recherche" action="search.php" method="get" role="search">  <!-- À l'exécution le formulaire envoie sur search.php -->
                 <label for="recherche_film"> Rechercher un film ou un réalisateur </label>
                 <div class="champ_recherche">
                     <input

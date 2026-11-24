@@ -1,3 +1,32 @@
+<?php
+
+    // Connexion PDO
+    require_once __DIR__ . "/../config/database.php";
+
+    // Récupération de la recherche via l'URL
+    $termeRecherche = $_GET["recherche"] ?? "";
+    $rechercheSQL = "%" . $termeRecherche . "%";        // Permet l'approximation dans la recherche
+
+    // Récupération des films de la recherche
+    $recherche = $pdo->prepare(
+            "SELECT *
+                    FROM film
+                    INNER JOIN realisateur
+                        ON film.id_realisateur = realisateur.id_realisateur
+                    WHERE titre LIKE :titre
+                        OR nom LIKE :nom
+                        OR prenom LIKE :prenom
+                    ORDER BY annee_de_sortie DESC, id_film DESC;");
+
+    $recherche->execute([
+            "titre" => $rechercheSQL,
+            "nom" => $rechercheSQL,
+            "prenom" => $rechercheSQL
+    ]);
+
+    $filmsRecherches = $recherche->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -22,7 +51,7 @@
         ===================================== -->
 
         <section class="section_page section_recherche">
-            <form class="formulaire_recherche" action="/search.php" method="get" role="search">
+            <form class="formulaire_recherche" action="search.php" method="get" role="search">
                 <label for="recherche_film"> Rechercher un film ou un réalisateur </label>
                 <div class="champ_recherche">
                     <input
@@ -42,19 +71,32 @@
         ===================================== -->
 
         <section class="section_page section_resultats">
-            <h2 class="titre_section"> Résultats de la recherche </h2>
+            <h2 class="titre_section"> Résultats de la recherche pour :
+                <?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>
+            </h2>
             <div class="liste_films">
-                <!-- Carte de film provisoire pour l'exemple -->
+                <!-- Cartes de film générées dynamiquement -->
+                <?php foreach ($filmsRecherches as $film): ?>
+
                 <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
+                    <img
+                            class="affiche_film"
+                            src="<?= htmlspecialchars(
+                                    !empty($film["affiche"]) ? $film["affiche"] : "images/affiche_indisponible.png",
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                            ) ?>"
+                            onerror="this.onerror=null; this.src='images/affiche_indisponible.png';"
+                            alt="affiche du film <?php echo htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>"
+                    >
                     <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
+                        <h3 class="titre_film"> <?php echo htmlspecialchars($film["titre"]) ?> </h3>
+                        <p class="description_film"> <?php echo htmlspecialchars($film["resume"]) ?> </p>
+                        <p class="prix_film"> <?php echo number_format((float) $film["prix"], 2, ",", " ") ?> € </p>
+                        <a
+                                class="lien_details_film"
+                                href="movie.php?id=<?php echo $film["id_film"] ?>"
+                        >
                             Voir les détails du film
                         </a>
                         <button class="bouton_panier" type="button" disabled>
@@ -62,82 +104,8 @@
                         </button>
                     </div>
                 </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
+
+                <?php endforeach; ?>
                 <!-- ----------------------------------------- -->
             </div>
         </section>
