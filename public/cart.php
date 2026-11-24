@@ -119,6 +119,8 @@
         exit();
     }
 
+    $erreurChargementPanier = false;
+
     // Récupération des films présents dans le panier
     try {
         $sql = "SELECT film.id_film, film.titre, film.affiche,
@@ -135,6 +137,7 @@
     } catch (PDOException $e) {
         error_log($e->getMessage());
         $filmsPanier = [];
+        $erreurChargementPanier = true;
     }
 
     // Calcul du nombre d'articles et du montant total
@@ -154,7 +157,10 @@
 
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["valider"])) {
 
-        if (!empty($filmsPanier)) {
+        if ($erreurChargementPanier) {
+            $messageValidation = "Impossible de récupérer votre panier. Veuillez réessayer.";
+
+        } elseif (!empty($filmsPanier)) {
 
             try {
                 // Démarrage de la transaction
@@ -248,8 +254,11 @@
         <section class="section_page section_panier">
             <h2 class="titre_section"> Films sélectionnés </h2>
             <div class="liste_panier">
-                <?php if (empty($filmsPanier)): ?>
+                <?php if ($erreurChargementPanier): ?>
+                    <p> Impossible de charger votre panier. Veuillez réessayer ultérieurement. </p>
+                <?php elseif (empty($filmsPanier)): ?>
                     <p> Votre panier est vide. </p>
+                    <p> <a href="index.php"> Retour au catalogue </a> </p>
                 <?php else: ?>
                     <?php foreach ($filmsPanier as $film): ?>
                         <article class="ligne_panier">
@@ -317,7 +326,7 @@
                                     class="bouton_valider"
                                     type="submit"
                                     name="valider"
-                                    <?= empty($filmsPanier) ? "disabled" : "" ?>
+                                    <?= (empty($filmsPanier) || $erreurChargementPanier) ? "disabled" : "" ?>
                             >
                                 Valider le panier
                             </button>
