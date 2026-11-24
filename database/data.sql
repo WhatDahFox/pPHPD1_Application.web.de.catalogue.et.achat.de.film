@@ -1,13 +1,12 @@
 -- ======================================================================
+
 -- Bob'ines - importation du catalogue de 50 films
 -- À exécuter après la création des 11 tables (bobines.sql).
--- Les prix sont fictifs. 
+-- Les prix sont fictifs.
 -- Les affiches externes peuvent devenir indisponibles.
--- Les dates de naissance non vérifiées restent NULL.
--- Le schéma ne permet qu'un réalisateur par film :
--- La réexécution évite les doublons logiques selon les champs
--- nom/prénom (personnes) et titre/année (films), sans les imposer
--- comme contraintes UNIQUE dans le schéma existant.
+-- Le schéma ne permet qu'un réalisateur par film.
+-- La réexécution évite les doublons logiques
+
 -- ======================================================================
 
 SET NAMES utf8mb4;
@@ -31,230 +30,230 @@ WHERE NOT EXISTS (SELECT 1 FROM categorie c WHERE c.nom = src.nom);
 
 -- 2. Réalisateurs : insertion directe, sans identifiants codés en dur.
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Nolan', 'Christopher', NULL, 'Britannique et américain', 'Christopher Nolan est un réalisateur et scénariste connu pour ses récits construits autour du temps, de la mémoire et de la perception. Il a réalisé Memento, The Dark Knight, Inception, Interstellar et Le Prestige. Ses films mêlent fréquemment spectacle et structures narratives complexes.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Nolan', 'Christopher', '1970-07-30', 'Britannique et américain', 'Christopher Nolan est un réalisateur et scénariste connu pour ses récits construits autour du temps, de la mémoire et de la perception. Il a réalisé Memento, The Dark Knight, Inception, Interstellar et Le Prestige. Ses films mêlent fréquemment spectacle et structures narratives complexes.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Christopher_Nolan.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Nolan' AND prenom = 'Christopher'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Miller', 'George', NULL, 'Australien', 'George Miller est un réalisateur, scénariste et producteur australien. Il a créé la saga Mad Max et réalisé Mad Max: Fury Road. Sa filmographie comprend également des œuvres très différentes comme Babe : Le Cochon dans la ville et Happy Feet.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Miller', 'George', '1945-03-03', 'Australien', 'George Miller est un réalisateur, scénariste et producteur australien. Il a créé la saga Mad Max et réalisé Mad Max: Fury Road. Sa filmographie comprend également des œuvres très différentes comme Babe : Le Cochon dans la ville et Happy Feet.', 'https://commons.wikimedia.org/wiki/Special:FilePath/George_Miller.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Miller' AND prenom = 'George'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Stahelski', 'Chad', NULL, 'Américain', 'Chad Stahelski est un réalisateur et ancien cascadeur américain. Il a participé à la mise en scène des combats de plusieurs productions et a réalisé John Wick. Son travail privilégie une action physique lisible et des chorégraphies précises.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Stahelski', 'Chad', '1968-09-20', 'Américain', 'Chad Stahelski est un réalisateur et ancien cascadeur américain. Il a participé à la mise en scène des combats de plusieurs productions et a réalisé John Wick. Son travail privilégie une action physique lisible et des chorégraphies précises.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Chad_Stahelski.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Stahelski' AND prenom = 'Chad'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'McTiernan', 'John', NULL, 'Américain', 'John McTiernan est un réalisateur américain associé au cinéma d''action et au thriller. Il a notamment signé Predator, Piège de cristal et À la poursuite d''Octobre rouge. Ses films reposent souvent sur la tension et la mise en scène de l''espace.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'McTiernan', 'John', '1951-01-08', 'Américain', 'John McTiernan est un réalisateur américain associé au cinéma d''action et au thriller. Il a notamment signé Predator, Piège de cristal et À la poursuite d''Octobre rouge. Ses films reposent souvent sur la tension et la mise en scène de l''espace.', 'https://commons.wikimedia.org/wiki/Special:FilePath/John_McTiernan_2025_3.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'McTiernan' AND prenom = 'John'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Cameron', 'James', NULL, 'Canadien', 'James Cameron est un réalisateur et scénariste canadien. Il a réalisé Terminator, Terminator 2 : Le Jugement dernier, Aliens, Titanic et Avatar. Il est connu pour son intérêt pour les innovations techniques et les univers de science-fiction.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Cameron', 'James', '1954-08-16', 'Canadien', 'James Cameron est un réalisateur et scénariste canadien. Il a réalisé Terminator, Terminator 2 : Le Jugement dernier, Aliens, Titanic et Avatar. Il est connu pour son intérêt pour les innovations techniques et les univers de science-fiction.', 'https://commons.wikimedia.org/wiki/Special:FilePath/James_Cameron_13_Dec_2025_(cropped_1).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Cameron' AND prenom = 'James'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Wachowski', 'Lana', NULL, 'Américaine', 'Lana Wachowski est une réalisatrice et scénariste américaine. Elle a coréalisé Matrix avec Lilly Wachowski, ainsi que plusieurs autres projets de science-fiction. La saga Matrix aborde notamment les thèmes de l''identité et de la réalité simulée.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Wachowski', 'Lana', '1965-06-21', 'Américaine', 'Lana Wachowski est une réalisatrice et scénariste américaine. Elle a coréalisé Matrix avec Lilly Wachowski, ainsi que plusieurs autres projets de science-fiction. La saga Matrix aborde notamment les thèmes de l''identité et de la réalité simulée.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Lana_Wachowski-2787_(3x4_cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Wachowski' AND prenom = 'Lana'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Scott', 'Ridley', NULL, 'Britannique', 'Ridley Scott est un réalisateur et producteur britannique. Il a réalisé Alien, le huitième passager, Blade Runner, Thelma et Louise et Gladiator. Son cinéma est reconnu pour ses univers visuels et ses reconstitutions ambitieuses.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Scott', 'Ridley', '1937-11-30', 'Britannique', 'Ridley Scott est un réalisateur et producteur britannique. Il a réalisé Alien, le huitième passager, Blade Runner, Thelma et Louise et Gladiator. Son cinéma est reconnu pour ses univers visuels et ses reconstitutions ambitieuses.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Ridley_Scott.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Scott' AND prenom = 'Ridley'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'McQuarrie', 'Christopher', NULL, 'Américain', 'Christopher McQuarrie est un scénariste et réalisateur américain. Il a réalisé Mission: Impossible – Fallout et d''autres épisodes de cette franchise. Il a également écrit le scénario d''Usual Suspects.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'McQuarrie', 'Christopher', '1968-10-25', 'Américain', 'Christopher McQuarrie est un scénariste et réalisateur américain. Il a réalisé Mission: Impossible – Fallout et d''autres épisodes de cette franchise. Il a également écrit le scénario d''Usual Suspects.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Christopher_McQuarrie_at_Cannes_Film_Festival_2025_05.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'McQuarrie' AND prenom = 'Christopher'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Wright', 'Edgar', NULL, 'Britannique', 'Edgar Wright est un réalisateur et scénariste britannique. Il a réalisé Shaun of the Dead et Hot Fuzz avec Simon Pegg et Nick Frost. Ses comédies associent montage rythmé, références cinéphiles et humour visuel.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Wright', 'Edgar', '1974-04-18', 'Britannique', 'Edgar Wright est un réalisateur et scénariste britannique. Il a réalisé Shaun of the Dead et Hot Fuzz avec Simon Pegg et Nick Frost. Ses comédies associent montage rythmé, références cinéphiles et humour visuel.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Edgar_Wright.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Wright' AND prenom = 'Edgar'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Nakache', 'Olivier', NULL, 'Français', 'Olivier Nakache est un réalisateur et scénariste français. Il travaille régulièrement avec Éric Toledano, avec qui il a coréalisé Intouchables. Leur cinéma aborde souvent les relations humaines par la comédie et le drame.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Nakache', 'Olivier', '1973-04-15', 'Français', 'Olivier Nakache est un réalisateur et scénariste français. Il travaille régulièrement avec Éric Toledano, avec qui il a coréalisé Intouchables. Leur cinéma aborde souvent les relations humaines par la comédie et le drame.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Olivier_Nakache_2026.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Nakache' AND prenom = 'Olivier'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Weir', 'Peter', NULL, 'Australien', 'Peter Weir est un réalisateur australien. Il a signé Le Cercle des poètes disparus, The Truman Show et Master and Commander. Ses films interrogent fréquemment la place de l''individu dans un environnement social ou institutionnel.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Weir', 'Peter', '1944-08-21', 'Australien', 'Peter Weir est un réalisateur australien. Il a signé Le Cercle des poètes disparus, The Truman Show et Master and Commander. Ses films interrogent fréquemment la place de l''individu dans un environnement social ou institutionnel.', 'https://commons.wikimedia.org/wiki/Special:FilePath/PeterWeirApr2011_(cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Weir' AND prenom = 'Peter'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Anderson', 'Wes', NULL, 'Américain', 'Wes Anderson est un réalisateur et scénariste américain. Il a réalisé The Grand Budapest Hotel, Moonrise Kingdom et La Famille Tenenbaum. Son cinéma se distingue par ses compositions symétriques, ses décors stylisés et son humour singulier.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Anderson', 'Wes', '1969-05-01', 'Américain', 'Wes Anderson est un réalisateur et scénariste américain. Il a réalisé The Grand Budapest Hotel, Moonrise Kingdom et La Famille Tenenbaum. Son cinéma se distingue par ses compositions symétriques, ses décors stylisés et son humour singulier.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Wes_Anderson-7541.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Anderson' AND prenom = 'Wes'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Dayton', 'Jonathan', NULL, 'Américain', 'Jonathan Dayton est un réalisateur américain. Avec Valerie Faris, il a coréalisé Little Miss Sunshine et Ruby Sparks. Leur travail associe personnages atypiques, humour et observation des rapports familiaux.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Dayton', 'Jonathan', '1957-07-07', 'Américain', 'Jonathan Dayton est un réalisateur américain. Avec Valerie Faris, il a coréalisé Little Miss Sunshine et Ruby Sparks. Leur travail associe personnages atypiques, humour et observation des rapports familiaux.', 'https://fr.web.img5.acsta.net/c_310_420/pictures/17/06/30/15/06/158149.jpg'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Dayton' AND prenom = 'Jonathan'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Ramis', 'Harold', NULL, 'Américain', 'Harold Ramis était un réalisateur, acteur et scénariste américain. Il a réalisé Un jour sans fin et Mes doubles, ma femme et moi, et participé à l''écriture de SOS Fantômes. Son œuvre occupe une place importante dans la comédie américaine.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Ramis', 'Harold', '1944-11-21', 'Américain', 'Harold Ramis était un réalisateur, acteur et scénariste américain. Il a réalisé Un jour sans fin et Mes doubles, ma femme et moi, et participé à l''écriture de SOS Fantômes. Son œuvre occupe une place importante dans la comédie américaine.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Harold_Ramis%2C_by_Justin_Hoch.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Ramis' AND prenom = 'Harold'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Russell', 'Chuck', NULL, 'Américain', 'Chuck Russell est un réalisateur américain. Il a signé The Mask, Le Blob et Freddy 3 : Les Griffes du cauchemar. Il a travaillé dans la comédie fantastique, l''horreur et le cinéma d''action.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Russell', 'Chuck', '1952-05-09', 'Américain', 'Chuck Russell est un réalisateur américain. Il a signé The Mask, Le Blob et Freddy 3 : Les Griffes du cauchemar. Il a travaillé dans la comédie fantastique, l''horreur et le cinéma d''action.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Chuck_Russell%2C_26_July_2024.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Russell' AND prenom = 'Chuck'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Fleischer', 'Ruben', NULL, 'Américain', 'Ruben Fleischer est un réalisateur américain. Il a réalisé Bienvenue à Zombieland, Venom et Uncharted. Ses films mêlent souvent action, humour et culture populaire.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Fleischer', 'Ruben', '1974-10-31', 'Américain', 'Ruben Fleischer est un réalisateur américain. Il a réalisé Bienvenue à Zombieland, Venom et Uncharted. Ses films mêlent souvent action, humour et culture populaire.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Ruben_Fleischer_Montclair_2025.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Fleischer' AND prenom = 'Ruben'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Zemeckis', 'Robert', NULL, 'Américain', 'Robert Zemeckis est un réalisateur et scénariste américain. Il a réalisé Retour vers le futur, Qui veut la peau de Roger Rabbit ? et Forrest Gump. Son cinéma conjugue récit populaire et expérimentations visuelles.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Zemeckis', 'Robert', '1952-05-14', 'Américain', 'Robert Zemeckis est un réalisateur et scénariste américain. Il a réalisé Retour vers le futur, Qui veut la peau de Roger Rabbit ? et Forrest Gump. Son cinéma conjugue récit populaire et expérimentations visuelles.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Robert_Zemeckis_2013.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Zemeckis' AND prenom = 'Robert'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Phillips', 'Todd', NULL, 'Américain', 'Todd Phillips est un réalisateur, scénariste et producteur américain. Il a réalisé Very Bad Trip et Joker. Il a travaillé dans des registres allant de la comédie de groupe au drame psychologique.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Phillips', 'Todd', '1970-12-20', 'Américain', 'Todd Phillips est un réalisateur, scénariste et producteur américain. Il a réalisé Very Bad Trip et Joker. Il a travaillé dans des registres allant de la comédie de groupe au drame psychologique.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Todd_Phillips-64836.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Phillips' AND prenom = 'Todd'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Darabont', 'Frank', NULL, 'Américain', 'Frank Darabont est un réalisateur et scénariste américain. Il a adapté des œuvres de Stephen King dans Les Évadés et La Ligne verte. Il a également participé au développement de la série The Walking Dead.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Darabont', 'Frank', '1959-01-28', 'Américain', 'Frank Darabont est un réalisateur et scénariste américain. Il a adapté des œuvres de Stephen King dans Les Évadés et La Ligne verte. Il a également participé au développement de la série The Walking Dead.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Frank_Darabont_at_the_PaleyFest_2011_-_The_Walking_Dead_panel.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Darabont' AND prenom = 'Frank'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Chazelle', 'Damien', NULL, 'Américain', 'Damien Chazelle est un réalisateur et scénariste américain. Il a réalisé Whiplash, La La Land et First Man. Son œuvre explore notamment la création artistique, l''ambition et le coût personnel de la réussite.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Chazelle', 'Damien', '1985-01-19', 'Américain', 'Damien Chazelle est un réalisateur et scénariste américain. Il a réalisé Whiplash, La La Land et First Man. Son œuvre explore notamment la création artistique, l''ambition et le coût personnel de la réussite.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Damien_Chazelle.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Chazelle' AND prenom = 'Damien'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Bong', 'Joon-ho', NULL, 'Sud-coréen', 'Bong Joon-ho est un réalisateur et scénariste sud-coréen. Il a réalisé Memories of Murder, The Host, Snowpiercer et Parasite. Ses films combinent satire sociale, suspense et changements de tonalité.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Bong', 'Joon-ho', '1969-09-14', 'Sud-coréen', 'Bong Joon-ho est un réalisateur et scénariste sud-coréen. Il a réalisé Memories of Murder, The Host, Snowpiercer et Parasite. Ses films combinent satire sociale, suspense et changements de tonalité.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Bong_Joon-Ho.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Bong' AND prenom = 'Joon-ho'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Spielberg', 'Steven', NULL, 'Américain', 'Steven Spielberg est un réalisateur et producteur américain. Il a signé Les Dents de la mer, E.T., Jurassic Park et La Liste de Schindler. Sa filmographie couvre le divertissement, le cinéma historique et le drame.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Spielberg', 'Steven', '1946-12-18', 'Américain', 'Steven Spielberg est un réalisateur et producteur américain. Il a signé Les Dents de la mer, E.T., Jurassic Park et La Liste de Schindler. Sa filmographie couvre le divertissement, le cinéma historique et le drame.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Steven_Spielberg_2025.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Spielberg' AND prenom = 'Steven'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Fincher', 'David', NULL, 'Américain', 'David Fincher est un réalisateur américain. Il a réalisé Seven, Fight Club, Zodiac et Gone Girl. Ses films sont souvent caractérisés par une mise en scène précise et un intérêt pour l''enquête ou l''obsession.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Fincher', 'David', '1962-08-28', 'Américain', 'David Fincher est un réalisateur américain. Il a réalisé Seven, Fight Club, Zodiac et Gone Girl. Ses films sont souvent caractérisés par une mise en scène précise et un intérêt pour l''enquête ou l''obsession.', 'https://commons.wikimedia.org/wiki/Special:FilePath/David_Fincher_2023.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Fincher' AND prenom = 'David'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Muccino', 'Gabriele', NULL, 'Italien', 'Gabriele Muccino est un réalisateur et scénariste italien. Il a réalisé À la recherche du bonheur avec Will Smith, ainsi que Sept vies. Ses films abordent fréquemment les choix personnels et les relations familiales.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Muccino', 'Gabriele', '1967-05-20', 'Italien', 'Gabriele Muccino est un réalisateur et scénariste italien. Il a réalisé À la recherche du bonheur avec Will Smith, ainsi que Sept vies. Ses films abordent fréquemment les choix personnels et les relations familiales.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Gabriele_Muccino.jpeg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Muccino' AND prenom = 'Gabriele'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Kubrick', 'Stanley', NULL, 'Américain', 'Stanley Kubrick était un réalisateur américain. Il a réalisé 2001 : L''Odyssée de l''espace, Orange mécanique et Shining. Il est réputé pour la précision de ses compositions et la diversité des genres qu''il a explorés.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Kubrick', 'Stanley', '1928-07-26', 'Américain', 'Stanley Kubrick était un réalisateur américain. Il a réalisé 2001 : L''Odyssée de l''espace, Orange mécanique et Shining. Il est réputé pour la précision de ses compositions et la diversité des genres qu''il a explorés.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Stanley_Kubrick_(1949_portrait_by_Phillip_Harrington_-_cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Kubrick' AND prenom = 'Stanley'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Wan', 'James', NULL, 'Australien', 'James Wan est un réalisateur et producteur australien né en Malaisie. Il a réalisé Saw, Conjuring : Les Dossiers Warren et Insidious. Il s''est également illustré dans le cinéma d''action avec Fast and Furious 7.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Wan', 'James', '1977-02-26', 'Australien', 'James Wan est un réalisateur et producteur australien né en Malaisie. Il a réalisé Saw, Conjuring : Les Dossiers Warren et Insidious. Il s''est également illustré dans le cinéma d''action avec Fast and Furious 7.', 'https://commons.wikimedia.org/wiki/Special:FilePath/James_Wan_at_Sundance_Film_Festival_2026.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Wan' AND prenom = 'James'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Peele', 'Jordan', NULL, 'Américain', 'Jordan Peele est un réalisateur, scénariste et acteur américain. Il a réalisé Get Out, Us et Nope. Son cinéma d''horreur interroge les peurs sociales et les comportements collectifs.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Peele', 'Jordan', '1979-02-21', 'Américain', 'Jordan Peele est un réalisateur, scénariste et acteur américain. Il a réalisé Get Out, Us et Nope. Son cinéma d''horreur interroge les peurs sociales et les comportements collectifs.', 'https://commons.wikimedia.org/wiki/Special:FilePath/SXSW_2019_2_-_Jordan_Peele_(47282560202)_(cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Peele' AND prenom = 'Jordan'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Carpenter', 'John', NULL, 'Américain', 'John Carpenter est un réalisateur et compositeur américain. Il a réalisé Halloween, The Thing et New York 1997. Ses films ont marqué le cinéma fantastique et d''horreur par leurs ambiances et leurs bandes originales.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Carpenter', 'John', '1948-01-16', 'Américain', 'John Carpenter est un réalisateur et compositeur américain. Il a réalisé Halloween, The Thing et New York 1997. Ses films ont marqué le cinéma fantastique et d''horreur par leurs ambiances et leurs bandes originales.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Portrait_(2)_of_John_Carpenter_by_Kyle_Cassidy.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Carpenter' AND prenom = 'John'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Craven', 'Wes', NULL, 'Américain', 'Wes Craven était un réalisateur et scénariste américain. Il a réalisé Les Griffes de la nuit et Scream. Son travail a durablement influencé le cinéma d''horreur contemporain.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Craven', 'Wes', '1939-08-02', 'Américain', 'Wes Craven était un réalisateur et scénariste américain. Il a réalisé Les Griffes de la nuit et Scream. Son travail a durablement influencé le cinéma d''horreur contemporain.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Wes_Craven_2010.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Craven' AND prenom = 'Wes'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Krasinski', 'John', NULL, 'Américain', 'John Krasinski est un acteur et réalisateur américain. Il a réalisé et interprété un rôle dans Sans un bruit. Il s''est également fait connaître du grand public grâce à la série The Office.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Krasinski', 'John', '1979-10-20', 'Américain', 'John Krasinski est un acteur et réalisateur américain. Il a réalisé et interprété un rôle dans Sans un bruit. Il s''est également fait connaître du grand public grâce à la série The Office.', 'https://commons.wikimedia.org/wiki/Special:FilePath/John_Krasinski_at_TIFF_2025_02_(cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Krasinski' AND prenom = 'John'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Muschietti', 'Andy', NULL, 'Argentin', 'Andy Muschietti est un réalisateur argentin. Il a réalisé Mama et Ça, adaptation du roman de Stephen King. Il a développé une filmographie orientée vers le fantastique et l''horreur.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Muschietti', 'Andy', '1973-08-26', 'Argentin', 'Andy Muschietti est un réalisateur argentin. Il a réalisé Mama et Ça, adaptation du roman de Stephen King. Il a développé une filmographie orientée vers le fantastique et l''horreur.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Andy_Muschietti_at_53rd_Saturn_Awards_2026-1470.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Muschietti' AND prenom = 'Andy'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Aster', 'Ari', NULL, 'Américain', 'Ari Aster est un réalisateur et scénariste américain. Il a réalisé Hérédité et Midsommar. Ses films mêlent terreur psychologique, relations familiales et mise en scène rigoureuse.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Aster', 'Ari', '1986-07-15', 'Américain', 'Ari Aster est un réalisateur et scénariste américain. Il a réalisé Hérédité et Midsommar. Ses films mêlent terreur psychologique, relations familiales et mise en scène rigoureuse.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Hereditary_Director_Ari_Aster_with_Toni_Collette_(cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Aster' AND prenom = 'Ari'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Friedkin', 'William', NULL, 'Américain', 'William Friedkin était un réalisateur américain. Il a réalisé French Connection et L''Exorciste. Son cinéma a exploré le thriller, le policier et l''horreur avec un style souvent réaliste et nerveux.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Friedkin', 'William', '1935-08-29', 'Américain', 'William Friedkin était un réalisateur américain. Il a réalisé French Connection et L''Exorciste. Son cinéma a exploré le thriller, le policier et l''horreur avec un style souvent réaliste et nerveux.', 'https://commons.wikimedia.org/wiki/Special:FilePath/William_Friedkin%2C_Festival_de_Sitges_2017_(cropped).jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Friedkin' AND prenom = 'William'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Scorsese', 'Martin', NULL, 'Américain', 'Martin Scorsese est un réalisateur américain. Il a réalisé Taxi Driver, Les Affranchis, Shutter Island et Le Loup de Wall Street. Ses films explorent souvent la culpabilité, la violence et les dilemmes moraux.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Scorsese', 'Martin', '1942-11-17', 'Américain', 'Martin Scorsese est un réalisateur américain. Il a réalisé Taxi Driver, Les Affranchis, Shutter Island et Le Loup de Wall Street. Ses films explorent souvent la culpabilité, la violence et les dilemmes moraux.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Martin_Scorsese_by_David_Shankbone.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Scorsese' AND prenom = 'Martin'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Villeneuve', 'Denis', NULL, 'Canadien', 'Denis Villeneuve est un réalisateur canadien. Il a réalisé Incendies, Prisoners, Premier Contact, Blade Runner 2049 et Dune. Son cinéma associe tension, compositions visuelles et récits ambitieux.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Villeneuve', 'Denis', '1967-10-03', 'Canadien', 'Denis Villeneuve est un réalisateur canadien. Il a réalisé Incendies, Prisoners, Premier Contact, Blade Runner 2049 et Dune. Son cinéma associe tension, compositions visuelles et récits ambitieux.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Denis_Villeneuve_2017_crop.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Villeneuve' AND prenom = 'Denis'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Demme', 'Jonathan', NULL, 'Américain', 'Jonathan Demme était un réalisateur américain. Il a réalisé Le Silence des agneaux et Philadelphia. Son travail a couvert la fiction, le documentaire et les films musicaux.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Demme', 'Jonathan', '1944-02-22', 'Américain', 'Jonathan Demme était un réalisateur américain. Il a réalisé Le Silence des agneaux et Philadelphia. Son travail a couvert la fiction, le documentaire et les films musicaux.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Jonathan_Demme_(May_2015)_(cropped).JPG?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Demme' AND prenom = 'Jonathan'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Singer', 'Bryan', NULL, 'Américain', 'Bryan Singer est un réalisateur américain. Il a réalisé Usual Suspects et plusieurs films de la série X-Men. Il a travaillé notamment dans le thriller et le cinéma de super-héros.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Singer', 'Bryan', '1965-09-17', 'Américain', 'Bryan Singer est un réalisateur américain. Il a réalisé Usual Suspects et plusieurs films de la série X-Men. Il a travaillé notamment dans le thriller et le cinéma de super-héros.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Bryan_Singer.2776_cropped.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Singer' AND prenom = 'Bryan'
 );
 
-INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie)
-SELECT 'Gilroy', 'Dan', NULL, 'Américain', 'Dan Gilroy est un réalisateur et scénariste américain. Il a écrit et réalisé Night Call, avec Jake Gyllenhaal. Le film questionne les dérives du journalisme d''images et la recherche du sensationnel.'
+INSERT INTO realisateur (nom, prenom, date_de_naissance, nationalite, biographie, portrait)
+SELECT 'Gilroy', 'Dan', '1959-06-24', 'Américain', 'Dan Gilroy est un réalisateur et scénariste américain. Il a écrit et réalisé Night Call, avec Jake Gyllenhaal. Le film questionne les dérives du journalisme d''images et la recherche du sensationnel.', 'https://commons.wikimedia.org/wiki/Special:FilePath/Dan_Gilroy_2014.jpg?width=400'
 WHERE NOT EXISTS (
   SELECT 1 FROM realisateur WHERE nom = 'Gilroy' AND prenom = 'Dan'
 );
