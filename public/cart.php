@@ -100,6 +100,25 @@
         exit();
     }
 
+    // Vidage intégral du panier
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["vider"])) {
+
+        try {
+            // Suppression de tous les films du panier utilisateur
+            $sql = "DELETE FROM contient WHERE id_panier = ?";
+
+            $requete = $pdo->prepare($sql);
+            $requete->execute([$idPanier]);
+
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+        }
+
+        // Redirection vers le panier
+        header("Location: cart.php");
+        exit();
+    }
+
     // Récupération des films présents dans le panier
     try {
         $sql = "SELECT film.id_film, film.titre, film.affiche,
@@ -192,6 +211,11 @@
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+            <?php if (!empty($filmsPanier)): ?>
+                <form action="cart.php" method="post">
+                    <button class="bouton_supprimer" type="submit" name="vider"> Vider le panier </button>
+                </form>
+            <?php endif; ?>
         </section>
                 <!-- =================================
                 2. Récapitulatif du panier
