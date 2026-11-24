@@ -26,9 +26,43 @@
             $message = "Les mots de passe sont différents.";
 
         } else {
-            $message = "Formulaire valide.";
+
+            try {
+                // Connexion PDO
+                require_once __DIR__ . "/../config/database.php";
+
+                // Vérifier si l'adresse email existe déjà
+                $sql = "SELECT id_utilisateur
+                        FROM utilisateur
+                        WHERE adresse_mail = ?";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$email]);
+
+                if ($requete->fetch()) {
+                    $message = "Cette adresse email est déjà utilisée.";
+
+                } else {
+
+                    // Sécuriser le mot de passe
+                    $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                    // Enregistrer le nouvel utilisateur
+                    $sql = "INSERT INTO utilisateur (nom, adresse_mail, mdp)
+                            VALUES (?, ?, ?)";
+
+                    $requete = $pdo->prepare($sql);
+                    $requete->execute([$nom, $email, $hash]);
+
+                    header("Location: login.php");
+                    exit();
+                }
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+                $message = "Une erreur est survenue lors de l'inscription.";
+            }
         }
-    }
 
 ?>
 
