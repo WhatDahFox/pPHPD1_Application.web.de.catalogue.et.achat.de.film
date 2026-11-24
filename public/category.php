@@ -96,9 +96,10 @@
                             >
                                 Voir les détails du film
                             </a>
-                            <button class="bouton_panier" type="button" disabled>
-                                Ajouter au panier
-                            </button>
+                            <form action="cart.php" method="post">
+                                <input type="hidden" name="id" value="<?= (int) $film["id_film"] ?>">
+                                <button class="bouton_panier" type="submit" name="ajouter"> Ajouter au panier </button>
+                            </form>
                         </div>
                     </article>
 

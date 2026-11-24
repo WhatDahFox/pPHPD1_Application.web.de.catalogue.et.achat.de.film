@@ -41,6 +41,40 @@
         exit("Impossible de récupérer le panier.");
     }
 
+    // Ajout d'un film au panier
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["ajouter"])) {
+
+        $idFilm = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
+
+        if ($idFilm !== false && $idFilm !== null && $idFilm > 0) {
+
+            try {
+                // Vérification de l'existence du film
+                $sql = "SELECT id_film FROM film WHERE id_film = ?";
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idFilm]);
+
+                if ($requete->fetch()) {
+
+                    // Ajout du film ou augmentation de sa quantité
+                    $sql = "INSERT INTO contient (id_film, id_panier, quantite)
+                            VALUES (?, ?, 1)
+                            ON DUPLICATE KEY UPDATE quantite = LEAST(quantite + 1, 127)";
+
+                    $requete = $pdo->prepare($sql);
+                    $requete->execute([$idFilm, $idPanier]);
+                }
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+            }
+        }
+
+        // Redirection vers le panier
+        header("Location: cart.php");
+        exit();
+    }
+
 ?>
 
 <!doctype html>
