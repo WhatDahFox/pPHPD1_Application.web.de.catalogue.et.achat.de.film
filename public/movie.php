@@ -157,11 +157,10 @@
                     <!-- Achat -->
                     <div class="achat_film">
                         <p class="prix_details_film"> <?php echo number_format((float) $ficheFilm["prix"], 2, ",", " ") ?> € </p>
-                        <button class="bouton_panier"
-                                type="button"
-                                disabled>
-                            Ajouter au panier
-                        </button>
+                        <form action="cart.php" method="post">
+                            <input type="hidden" name="id" value="<?= (int) $ficheFilm["id_film"] ?>">
+                            <button class="bouton_panier" type="submit" name="ajouter"> Ajouter au panier </button>
+                        </form>
                     </div>
                     <!-- -------------------- -->
 
