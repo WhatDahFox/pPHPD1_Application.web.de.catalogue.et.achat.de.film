@@ -149,6 +149,18 @@
         $totalPanier += $prix * $quantite;
     }
 
+    // Validation du panier (achat simulé)
+    $messageValidation = "";
+
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["valider"])) {
+
+        if (!empty($filmsPanier)) {
+            $messageValidation = "Votre achat a été validé (simulation).";
+        } else {
+            $messageValidation = "Impossible de valider un panier vide.";
+        }
+    }
+
 ?>
 
 <!doctype html>
@@ -241,7 +253,19 @@
                             <strong> Total : </strong>
                             <span> <?= number_format($totalPanier, 2, ",", " ") ?> € </span>
                         </p>
-                        <button class="bouton_valider" type="button" disabled> Valider le panier </button>
+                        <form action="cart.php" method="post">
+                            <button
+                                    class="bouton_valider"
+                                    type="submit"
+                                    name="valider"
+                                    <?= empty($filmsPanier) ? "disabled" : "" ?>
+                            >
+                                Valider le panier
+                            </button>
+                            <?php if ($messageValidation !== ""): ?>
+                                <p> <?= htmlspecialchars($messageValidation, ENT_QUOTES, 'UTF-8') ?> </p>
+                            <?php endif; ?>
+                        </form>
                     </div>
                 </section>
     </main>
