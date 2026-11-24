@@ -1,3 +1,39 @@
+<?php
+    //Connexion PDO
+    require_once __DIR__ . "/../config/database.php";
+
+    // Récupération de toutes les catégories
+    $requeteCategories = $pdo->query(
+            "SELECT id_categorie, nom
+                    FROM categorie
+                    ORDER BY nom");
+
+    $categories = $requeteCategories->fetchAll(PDO::FETCH_ASSOC);
+
+    // Récupération de la catégorie sélectionnée (action par défaut)
+    $categorieSelectionnee = $_GET["categorie"] ?? "action";
+
+    // Récupération des films de la catégorie
+    $requete = $pdo->prepare(
+            "SELECT id_film, titre, affiche, `resume`, prix
+                    FROM film
+                    WHERE id_film IN (
+                            SELECT id_film
+                            FROM fait_partie_de
+                            WHERE id_categorie = (
+                                SELECT id_categorie
+                                FROM categorie
+                                WHERE nom = :categorie
+                                )
+                            )
+                    ORDER BY annee_de_sortie DESC, id_film DESC");
+
+    $requete->execute(["categorie" => $categorieSelectionnee]);
+
+    $films = $requete -> fetchAll(PDO::FETCH_ASSOC);
+?>
+
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -22,11 +58,11 @@
         ===================================== -->
 
         <nav class="navigation_categories">
-            <a class="lien_categorie" href="category.php?categorie=action"> Action </a>
-            <a class="lien_categorie" href="category.php?categorie=comedie"> Comédie </a>
-            <a class="lien_categorie" href="category.php?categorie=drame"> Drame </a>
-            <a class="lien_categorie" href="category.php?categorie=horreur"> Horreur </a>
-            <a class="lien_categorie" href="category.php?categorie=thriller"> Thriller </a>
+            <?php foreach ($categories as $categorie): ?>
+                <a class="lien_categorie" href="category.php?categorie=<?= urlencode($categorie["nom"]) ?>">
+                    <?= htmlspecialchars($categorie["nom"], ENT_QUOTES, 'UTF-8') ?>
+                </a>
+            <?php endforeach; ?>
         </nav>
 
         <!-- =================================
@@ -34,124 +70,40 @@
         ===================================== -->
 
         <section class="section_page section_categorie">
-            <h2 class="titre_section"> Films de la catégorie </h2>
+            <h2 class="titre_section"> Films de la catégorie <?php echo htmlspecialchars($categorieSelectionnee, ENT_QUOTES, 'UTF-8') ?> </h2>
             <div class="liste_films">
-                <!-- Carte provisoire -->
-                <article class="carte_film">
-                    <img
+                <!-- Cartes de films générées dynamiquement -->
+                <?php foreach ($films as $film) : ?>
+
+                    <article class="carte_film">
+                        <img
                             class="affiche_film"
-                            src="images/affiche_indisponible.png"
-                            alt="Affiche du film"
-                    >
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film">Titre exemple</h3>
-                        <p class="description_film">
-                            Résumé provisoire du film.
-                            Cette description sera remplacée
-                            par les données de MySQL.
-                        </p>
-                        <p class="prix_film">9,90 €</p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- Carte provisoire -->
-                <article class="carte_film">
-                    <img
-                            class="affiche_film"
-                            src="images/affiche_indisponible.png"
-                            alt="Affiche du film"
-                    >
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film">Titre exemple</h3>
-                        <p class="description_film">
-                            Résumé provisoire du film.
-                            Cette description sera remplacée
-                            par les données de MySQL.
-                        </p>
-                        <p class="prix_film">9,90 €</p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- Carte provisoire -->
-                <article class="carte_film">
-                    <img
-                            class="affiche_film"
-                            src="images/affiche_indisponible.png"
-                            alt="Affiche du film"
-                    >
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film">Titre exemple</h3>
-                        <p class="description_film">
-                            Résumé provisoire du film.
-                            Cette description sera remplacée
-                            par les données de MySQL.
-                        </p>
-                        <p class="prix_film">9,90 €</p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- Carte provisoire -->
-                <article class="carte_film">
-                    <img
-                            class="affiche_film"
-                            src="images/affiche_indisponible.png"
-                            alt="Affiche du film"
-                    >
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film">Titre exemple</h3>
-                        <p class="description_film">
-                            Résumé provisoire du film.
-                            Cette description sera remplacée
-                            par les données de MySQL.
-                        </p>
-                        <p class="prix_film">9,90 €</p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- Carte provisoire -->
-                <article class="carte_film">
-                    <img
-                            class="affiche_film"
-                            src="images/affiche_indisponible.png"
-                            alt="Affiche du film"
-                    >
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film">Titre exemple</h3>
-                        <p class="description_film">
-                            Résumé provisoire du film.
-                            Cette description sera remplacée
-                            par les données de MySQL.
-                        </p>
-                        <p class="prix_film">9,90 €</p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <button class="bouton_panier" type="button" disabled>
-                            Ajouter au panier
-                        </button>
-                    </div>
-                </article>
-                <!-- ----------------- -->
+                            src="<?= htmlspecialchars(
+                                    !empty($film["affiche"]) ? $film["affiche"] : "images/affiche_indisponible.png",
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                            ) ?>"
+                            onerror="this.onerror=null; this.src='images/affiche_indisponible.png';"
+                            alt="affiche du film <?php echo htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                        <div class="contenu_carte_film">
+                            <h3 class="titre_film"> <?php echo htmlspecialchars($film["titre"]) ?> </h3>
+                            <p class="description_film"> <?php echo htmlspecialchars($film["resume"]) ?> </p>
+                            <p class="prix_film"> <?php echo number_format((float) $film["prix"], 2, ",", " ") ?> € </p>
+                            <a
+                                    class="lien_details_film"
+                                    href="movie.php?id=<?php echo $film["id_film"] ?>"
+                            >
+                                Voir les détails du film
+                            </a>
+                            <button class="bouton_panier" type="button" disabled>
+                                Ajouter au panier
+                            </button>
+                        </div>
+                    </article>
+
+                <?php endforeach; ?>
+                <!-- ----------------------------------------- -->
             </div>
         </section>
 
