@@ -1,3 +1,16 @@
+<?php
+
+    // Démarrage de la session PHP
+    session_start();
+
+    // Vérification de la connexion
+    if (!isset($_SESSION["utilisateur"]["id_utilisateur"])) {
+        header("Location: login.php");
+        exit();
+    }
+
+?>
+
 <!doctype html>
 <html lang="fr">
 <head>
