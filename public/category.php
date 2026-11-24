@@ -1,25 +1,52 @@
 
 <?php
-require_once __DIR__ . '/../includes/films.php';
+require_once __DIR__ . '/../config/database.php';
 
 $categorie = trim($_GET['categorie'] ?? '');
-$resultats = [];
 $categories = [];
+$resultats = [];
 
-foreach ($films as $id => $film) {
-    $categories[$film['categorie']] = true;
+// Récupération de toutes les catégories
+$requeteCategories = $pdo->query("
+    SELECT id_categorie, nom
+    FROM categorie
+    ORDER BY nom
+");
 
-    if (
-        $categorie !== '' &&
-        strcasecmp($film['categorie'], $categorie) === 0
-    ) {
-        $resultats[$id] = $film;
-    }
+$categories = $requeteCategories->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupération des films de la catégorie sélectionnée
+if ($categorie !== '') {
+
+    $requeteFilms = $pdo->prepare("
+        SELECT
+            f.id_film,
+            f.titre,
+            f.affiche,
+            f.annee_de_sortie,
+            f.prix,
+            f.resume,
+            CONCAT(r.prenom, ' ', r.nom) AS realisateur,
+            c.nom AS categorie
+        FROM film f
+        INNER JOIN fait_partie_de fp
+            ON f.id_film = fp.id_film
+        INNER JOIN categorie c
+            ON fp.id_categorie = c.id_categorie
+        LEFT JOIN realisateur r
+            ON f.id_realisateur = r.id_realisateur
+        WHERE c.nom = ?
+        ORDER BY f.titre
+    ");
+
+    $requeteFilms->execute([$categorie]);
+    $resultats = $requeteFilms->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 
 <!doctype html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,99 +57,140 @@ foreach ($films as $id => $film) {
 
 <body class="conteneur">
 
-    <header class="bloc header"></header>
+<header class="bloc header"></header>
 
-    <main>
-        <h1>Nos catégories de films</h1>
+<main>
 
-        <nav class="navigation_categories">
-            <?php foreach (array_keys($categories) as $nomCategorie): ?>
-                <a class="lien_categorie"
-                   href="category.php?categorie=<?= urlencode($nomCategorie) ?>">
-                    <?= htmlspecialchars($nomCategorie) ?>
-                </a>
-            <?php endforeach; ?>
-        </nav>
+    <h1>Nos catégories de films</h1>
 
-        <section class="section_page section_categorie">
+    <nav class="navigation_categories">
 
-            <?php if ($categorie === ''): ?>
+        <?php foreach ($categories as $nomCategorie): ?>
 
-                <h2 class="titre_section">Choisissez une catégorie</h2>
-                <p>Choisissez une catégorie pour découvrir les films.</p>
+            <a
+                class="lien_categorie"
+                href="category.php?categorie=<?= urlencode($nomCategorie['nom']) ?>"
+            >
+                <?= htmlspecialchars($nomCategorie['nom']) ?>
+            </a>
 
-            <?php elseif (empty($resultats)): ?>
+        <?php endforeach; ?>
 
-                <h2 class="titre_section">Catégorie introuvable</h2>
-                <p>Aucun film trouvé dans cette catégorie.</p>
+    </nav>
 
-            <?php else: ?>
+    <section class="section_page section_categorie">
 
-                <h2 class="titre_section">
-                    Films de la catégorie :
-                    <?= htmlspecialchars($categorie) ?>
-                </h2>
+        <?php if ($categorie === ''): ?>
 
-                <div class="liste_films">
+            <h2 class="titre_section">Choisissez une catégorie</h2>
 
-                    <?php foreach ($resultats as $id => $film): ?>
+            <p>
+                Choisissez une catégorie pour découvrir les films.
+            </p>
 
-                        <article class="carte_film">
+        <?php elseif (empty($resultats)): ?>
 
-                            <img
-                                class="affiche_film"
-                                src="./images/affiche_indisponible.png"
-                                alt="Affiche indisponible"
+            <h2 class="titre_section">Catégorie introuvable</h2>
+
+            <p>
+                Aucun film trouvé dans cette catégorie.
+            </p>
+
+        <?php else: ?>
+
+            <h2 class="titre_section">
+                Films de la catégorie :
+                <?= htmlspecialchars($categorie) ?>
+            </h2>
+
+            <div class="liste_films">
+
+                <?php foreach ($resultats as $film): ?>
+
+                    <?php
+                    $affiche = !empty($film['affiche'])
+                        ? $film['affiche']
+                        : './images/affiche_indisponible.png';
+
+                    $realisateur = $film['realisateur']
+                        ?? 'Réalisateur inconnu';
+                    ?>
+
+                    <article class="carte_film">
+
+                        <img
+                            class="affiche_film"
+                            src="<?= htmlspecialchars($affiche) ?>"
+                            alt="Affiche de <?= htmlspecialchars($film['titre']) ?>"
+                        >
+
+                        <div class="contenu_carte_film">
+
+                            <h3 class="titre_film">
+                                <?= htmlspecialchars($film['titre']) ?>
+                            </h3>
+
+                            <p class="description_film">
+                                <?= htmlspecialchars((string) $film['annee_de_sortie']) ?>
+                                -
+                                <?= htmlspecialchars($realisateur) ?>
+                            </p>
+
+                            <p class="prix_film">
+                                <?= number_format(
+                                    (float) $film['prix'],
+                                    2,
+                                    ',',
+                                    ' '
+                                ) ?> €
+                            </p>
+
+                            <a
+                                class="lien_details_film"
+                                href="movie.php?id=<?= (int) $film['id_film'] ?>"
                             >
+                                Voir les détails du film
+                            </a>
 
-                            <div class="contenu_carte_film">
+                            <form method="POST" action="cart.php">
 
-                                <h3 class="titre_film">
-                                    <?= htmlspecialchars($film['titre']) ?>
-                                </h3>
+                                <input
+                                    type="hidden"
+                                    name="id"
+                                    value="<?= (int) $film['id_film'] ?>"
+                                >
 
-                                <p class="description_film">
-                                    <?= htmlspecialchars((string) $film['annee']) ?>
-                                    -
-                                    <?= htmlspecialchars($film['realisateur']) ?>
-                                </p>
+                                <button
+                                    class="bouton_panier"
+                                    type="submit"
+                                    name="ajouter"
+                                >
+                                    Ajouter au panier
+                                </button>
 
-                                <p class="prix_film">
-                                    <?= number_format($film['prix'], 2, ',', ' ') ?> €
-                                </p>
+                            </form>
 
-                                <a class="lien_details_film"
-                                   href="movie.php?id=<?= (int) $id ?>">
-                                    Voir les détails du film
-                                </a>
+                        </div>
 
-                                <form method="POST" action="cart.php">
-                                    <input type="hidden" name="id" value="<?= (int) $id ?>">
-                                    <button class="bouton_panier"
-                                            type="submit"
-                                            name="ajouter">
-                                        Ajouter au panier
-                                    </button>
-                                </form>
+                    </article>
 
-                            </div>
-                        </article>
+                <?php endforeach; ?>
 
-                    <?php endforeach; ?>
+            </div>
 
-                </div>
+        <?php endif; ?>
 
-            <?php endif; ?>
+    </section>
 
-        </section>
+    <p>
+        <a href="index.php">Retour à l'accueil</a>
+    </p>
 
-        <p><a href="index.php">Retour à l'accueil</a></p>
+</main>
 
-    </main>
+<footer class="bloc footer"></footer>
 
-    <footer class="bloc footer"></footer>
-
-    <script type="module" src="./js/layout.js"></script>
+<script type="module" src="./js/layout.js"></script>
 
 </body>
 </html>
