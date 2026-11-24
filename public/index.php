@@ -1,3 +1,9 @@
+<?php
+require_once __DIR__ . '/../includes/films.php';
+
+?>
+
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -29,21 +35,32 @@
         <section class="section_page section_tendance">
             <h2 class="titre_section" id="titre_tendance"> Films tendances </h2>
             <div class="liste_films">
-                <!-- Carte de film provisoire pour l'exemple -->
+                <?php foreach ($films as $id => $film): ?>
+              
                 <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
+
+                    <img 
+                    class="affiche_film" 
+                    src="images/affiche_indisponible.png" 
+                    alt="affiche du film">
                     <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
+                        <h3 class="titre_film">
+                             <?= htmlspecialchars($film['titre']) ?>
+                            </h3>
                         <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
+                           <?= htmlspecialchars($film['categorie']) ?>
+                           <?= htmlspecialchars($film['annee']) ?>
+                           <?= htmlspecialchars($film['realisateur']) ?>
                         </p>
-                        <p class="prix_film"> 12,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
+
+                        <p class="prix_film"> 
+                            <?= number_format($film['prix'],2,',','') ?>€
+                        </p>
+                        <a class="lien_details_film" href="movie.php?id=<?= $id ?>">
                             Voir les détails du film
                         </a>
                         <form method="POST" action="cart.php">
-                            <input type="hidden" name="id" value="1">
+                            <input type="hidden" name="id" value="<?= $id ?>">
                         
                             <button class="bouton_panier"
                                     type= "submit"
@@ -55,111 +72,8 @@
                         
                     </div>
                 </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                       <form method="POST" action="cart.php">
-                            <input type="hidden" name="id" value="1">
-                        
-                            <button class="bouton_panier"
-                                    type= "submit"
-                                    name="ajouter">
-                                    Ajouter au Panier
-
-                            </button>
-                        </form>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                       <form method="POST" action="cart.php">
-                            <input type="hidden" name="id" value="2">
-                        
-                            <button class="bouton_panier"
-                                    type= "submit"
-                                    name="ajouter">
-                                    Ajouter au Panier
-
-                            </button>
-                        </form>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <form method="POST" action="cart.php">
-                            <input type="hidden" name="id" value="2">
-                        
-                            <button class="bouton_panier"
-                                    type= "submit"
-                                    name="ajouter">
-                                    Ajouter au Panier
-
-                            </button>
-                        </form>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
-                <!-- Carte de film provisoire pour l'exemple -->
-                <article class="carte_film">
-                    <img class="affiche_film" src="images/affiche_indisponible.png" alt="affiche du film">
-                    <div class="contenu_carte_film">
-                        <h3 class="titre_film"> Titre exemple </h3>
-                        <p class="description_film">
-                            Résumé du film affiché sur trois lignes
-                            maximum pour conserver une carte homogène.
-                        </p>
-                        <p class="prix_film"> 9,90 € </p>
-                        <a class="lien_details_film" href="movie.php">
-                            Voir les détails du film
-                        </a>
-                        <form method="POST" action="cart.php">
-                            <input type="hidden" name="id" value="2">
-                        
-                            <button class="bouton_panier"
-                                    type= "submit"
-                                    name="ajouter">
-                                    Ajouter au Panier
-
-                            </button>
-                        </form>
-                    </div>
-                </article>
-                <!-- ----------------------------------------- -->
+                <?php endforeach; ?>
+                
             </div>
         </section>
 
