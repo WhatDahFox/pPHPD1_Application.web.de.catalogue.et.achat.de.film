@@ -1,141 +1,156 @@
-<?php
 
+<?php
 session_start();
 
-//Verifie si l'utilisateur est connecté
-if (!isset($_SESSION["utilisateur"])){
+require_once __DIR__ . '/../includes/films.php';
 
-     //Redirige vers le profil
+// Vérification de la connexion
+if (!isset($_SESSION["utilisateur"])) {
     header("Location: login.php");
     exit();
 }
 
-if (!isset($_SESSION["panier"])){
-    $_SESSION["panier"]=[];
+// Initialisation du panier
+if (!isset($_SESSION["panier"])) {
+    $_SESSION["panier"] = [];
 }
 
-$films = [
-    1=> ["titre"=>"Film Action", "prix" => 12.99],
-    2=> ["titre"=>"Film Drame", "prix" => 9.99]
-];
+// Gestion des actions du panier
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-if($_SERVER ["REQUEST_METHOD"] == "POST"){
+    $id = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
 
-    //Récupère l'id du film 
-    $id = (int) ($_POST["id"]?? 0);
-
-    //Ajout du Film au panier 
-    if (isset($_POST["ajouter"])&& isset($films[$id])) {
-        $_SESSION["panier"][$id]=
-        ($_SESSION["panier"][$id]?? 0) + 1;
+    // Ajouter un film
+    if (isset($_POST["ajouter"]) && $id !== false && $id !== null && isset($films[$id])) {
+        $_SESSION["panier"][$id] =
+            ($_SESSION["panier"][$id] ?? 0) + 1;
     }
 
-    //Supprime le film du panier 
-    if (isset($_POST["supprimer"])){
+    // Supprimer un film
+    if (isset($_POST["supprimer"]) && $id !== false && $id !== null) {
         unset($_SESSION["panier"][$id]);
     }
 
-    //F5 de la page 
     header("Location: cart.php");
     exit();
 }
 
-//Calcul du panier 
+// Calcul du total et du nombre d'articles
 $total = 0;
+$nombreArticles = 0;
 
-foreach ($_SESSION["panier"]as $id=> $quantite){
-    if(isset($films[$id])){
+foreach ($_SESSION["panier"] as $id => $quantite) {
+    if (isset($films[$id])) {
         $total += $films[$id]["prix"] * $quantite;
+        $nombreArticles += $quantite;
     }
 }
-
 ?>
-
 
 <!doctype html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Panier | Bob'ines </title>
+    <title>Panier | Bob'ines</title>
     <link rel="stylesheet" href="./css/common.css">
-    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/cart.css">
 </head>
 
 <body class="conteneur">
 
-    <header class="bloc header">
-        <!-- Insertion header en JS -->
-    </header>
+<header class="bloc header"></header>
 
-    <main>
+<main>
+    <h1>Mon panier</h1>
 
-    <h1>Mon panier </h1>
+    <section class="section_page section_panier">
+        <h2 class="titre_section">Films sélectionnés</h2>
 
-    <h2>Films disponibles (test)</h2>
+        <div class="liste_panier">
 
-    <?php foreach ($films as $id => $film): ?>
+            <?php if (empty($_SESSION["panier"])): ?>
+                <p>Votre panier est vide.</p>
 
-    <p>
-        <?= htmlspecialchars($film["titre"]) ?>
-        -
-        <?= number_format($film["prix"],2,",","") ?> €
-    </p>
- 
-    <form method="POST" action="cart.php">
-        <input type="hidden" name="id" value="<?= $id ?>">
-        <button type="submit" name="ajouter">
-            Ajouter au panier 
-        </button>
+            <?php else: ?>
 
-    </form>
+                <?php foreach ($_SESSION["panier"] as $id => $quantite): ?>
+                    <?php if (isset($films[$id])):
+                        $film = $films[$id];
+                        $sousTotal = $film["prix"] * $quantite;
+                    ?>
 
-    <?php endforeach; ?>
+                        <article class="ligne_panier">
 
-    <h2>Contenu du panier</h2>
-    
-    <?php if (empty($_SESSION["panier"])): ?>
-        <p>Votre panier est vide.</p>
+                            <img class="affiche_panier"
+                                 src="images/affiche_indisponible.png"
+                                 alt="Affiche indisponible">
 
-        <?php else : ?>
-            <?php foreach ($_SESSION["panier"]as $id => $quantite): ?>
-                <?php if (isset($films[$id])): ?>
+                            <div class="informations_panier">
+                                <h3 class="titre_film">
+                                    <?= htmlspecialchars($film["titre"]) ?>
+                                </h3>
 
-                    <p>
-                        <?= htmlspecialchars($films[$id]["titre"]) ?>
-                        -
-                        Quantité : <?= $quantite ?>
-                        -
-                        <?= number_format(
-                            $films[$id]["prix"]* $quantite,
-                            2, ",",""
-                        ) ?>€
-                    </p>
+                                <a href="movie.php?id=<?= $id ?>">
+                                    Voir les détails du film
+                                </a>
 
-                    <form method="POST" action="cart.php">
-                           <input type="hidden" name="id" value="<?= $id ?>">
-                             <button type="submit" name="supprimer">
-                               Supprimer 
-                                </button>
-                    </form>
-                
-                <?php endif; ?>
+                                <p>
+                                    Prix unitaire :
+                                    <?= number_format($film["prix"], 2, ",", " ") ?> €
+                                </p>
 
-            <?php endforeach; ?>
+                                <p>Quantité : <?= $quantite ?></p>
+                            </div>
+
+                            <div class="actions_panier">
+                                <p class="sous_total_panier">
+                                    <?= number_format($sousTotal, 2, ",", " ") ?> €
+                                </p>
+
+                                <form method="POST" action="cart.php">
+                                    <input type="hidden" name="id" value="<?= $id ?>">
+                                    <button class="bouton_supprimer"
+                                            type="submit"
+                                            name="supprimer">
+                                        Supprimer
+                                    </button>
+                                </form>
+                            </div>
+
+                        </article>
+
+                    <?php endif; ?>
+                <?php endforeach; ?>
 
             <?php endif; ?>
 
-        <h2>
-            Total : <?= number_format ($total, 2,","," ") ?>€
-        </h2>
+        </div>
+    </section>
 
-    </main>
+    <section class="section_page section_total_panier">
+        <h2 class="titre_section">Récapitulatif</h2>
 
-    <footer class="bloc footer">
-        <!-- Insertion footer en JS -->
-    </footer>
+        <div class="recapitulatif_panier">
+            <p>
+                <strong>Nombre d'articles :</strong>
+                <?= $nombreArticles ?>
+            </p>
 
-    <script type="module" src="./js/layout.js"></script>
+            <p class="total_panier">
+                <strong>Total :</strong>
+                <span><?= number_format($total, 2, ",", " ") ?> €</span>
+            </p>
+        </div>
+    </section>
+
+    <p><a href="index.php">Retour au catalogue</a></p>
+
+</main>
+
+<footer class="bloc footer"></footer>
+
+<script type="module" src="./js/layout.js"></script>
 
 </body>
 </html>

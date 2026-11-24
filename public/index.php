@@ -85,11 +85,11 @@ require_once __DIR__ . '/../includes/films.php';
                 <label for="recherche_film"> Rechercher un film ou un réalisateur </label>
                 <div class="champ_recherche">
                     <input
-                        id="recherche_film"
-                        name="recherche"
-                        type="search"
-                        placeholder="Titre ou réalisateur"
-                        required
+                         id="recherche_film"
+                         name="recherche"
+                         type="search"
+                         placeholder="Titre ou réalisateur..."
+                         required
                     >
                     <button type="submit" class="bouton_recherche">
                         Rechercher

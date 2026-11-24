@@ -1,64 +1,65 @@
+
 <?php
 
 $message = "";
 
-if ($_SERVER["REQUEST_METHOD"] == "POST"){
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+    $nom = trim($_POST["nom"] ?? "");
+    $email = trim($_POST["email"] ?? "");
+    $password = $_POST["password"] ?? "";
+    $confirmation = $_POST["confirmation"] ?? "";
 
- $nom = trim($_POST["nom"]??"");
- $email = trim($_POST["email"]??"");
- $password = $_POST["password"]??"";
- $confirmation = $_POST["confirmation"]??"";
+    if (empty($nom) || empty($email) || empty($password) || empty($confirmation)) {
+        $message = "Veuillez remplir tous les champs.";
 
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Adresse email invalide.";
 
+    } elseif (strlen($password) < 8) {
+        $message = "Le mot de passe doit contenir 8 caractères minimum.";
 
- if (empty($nom)|| empty($email)|| empty($password)||empty($confirmation)){
-    $message = "Veuillez remplir tous les champs.";
- }
+    } elseif ($password !== $confirmation) {
+        $message = "Les mots de passe sont différents.";
 
- elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)){
-    $message = "Adresse email invalide.";
- }
+    } else {
 
- elseif (strlen($password)< 8){
-    $message = "Le mot de passe doit contenir 8 caractères minimum.";
- }
+        try {
+            require_once __DIR__ . "/../config/database.php";
 
- elseif($password !== $confirmation){
-    $message = "Les mots de passe sont différents.";
- }
- else{
-    // Partie MYSQL valide 
-     /*
-        require_once __DIR__ . "/../config/database.php";
-
-        // Vérifier si l'email existe déjà
-        $sql = "SELECT id FROM users WHERE email = ?";
-        $requete = $pdo->prepare($sql);
-        $requete->execute([$email]);
-
-        if ($requete->fetch()) {
-            $message = "Cet email est déjà utilisé.";
-        }
-        else {
-            // Sécuriser le mot de passe
-            $hash = password_hash($password, PASSWORD_DEFAULT);
-
-            // Ajouter l'utilisateur
-            $sql = "INSERT INTO users (nom, email, password_hash)
-                    VALUES (?, ?, ?)";
+            // Vérifier si l'adresse email existe déjà
+            $sql = "SELECT id_utilisateur
+                    FROM utilisateur
+                    WHERE adresse_mail = ?";
 
             $requete = $pdo->prepare($sql);
-            $requete->execute([$nom, $email, $hash]);
+            $requete->execute([$email]);
 
-            header("Location: login.php");
-            exit();
+            if ($requete->fetch()) {
+                $message = "Cette adresse email est déjà utilisée.";
+
+            } else {
+
+                // Sécuriser le mot de passe
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                // Enregistrer le nouvel utilisateur
+                $sql = "INSERT INTO utilisateur (nom, adresse_mail, mdp)
+                        VALUES (?, ?, ?)";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$nom, $email, $hash]);
+
+                header("Location: login.php");
+                exit();
+            }
+
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            $message = "Une erreur est survenue lors de l'inscription.";
         }
-        */
-        $message = "Formulaire valide ! Enregistrement en attente de MySQL.";
-
     }
- }
+}
 
 ?>
 
@@ -67,52 +68,100 @@ if ($_SERVER["REQUEST_METHOD"] == "POST"){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Inscription | Bob'ines </title>
+    <title>Inscription | Bob'ines</title>
     <link rel="stylesheet" href="./css/common.css">
-    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/register.css">
 </head>
 
 <body class="conteneur">
 
-<header class="bloc header">
-    <!-- Insertion header en JS -->
-</header>
+    <header class="bloc header">
+        <!-- Insertion header en JS -->
+    </header>
 
-<main>
-<h1>Créer un compte </h1>
+    <main>
+        <h1>Inscription</h1>
 
-<p><?= htmlspecialchars($message)?></p>
+        <section class="section_page section_inscription">
 
-<form method="POST" action="register.php">
+            <form class="formulaire_inscription"
+                  action="register.php"
+                  method="post">
 
-<label>Nom :</label>
-<input type="text" name="nom" required>
+                <h2>Créer un compte</h2>
 
-<label>Email :</label>
-<input type="email" name="email" required>
+                <?php if ($message !== ""): ?>
+                    <p><?= htmlspecialchars($message) ?></p>
+                <?php endif; ?>
 
-<label>Mot de passe :</label>
-<input type="password" name="password" minlength="8" required>
+                <div class="champ_inscription">
+                    <label for="nom_inscription">Nom</label>
+                    <input
+                        id="nom_inscription"
+                        name="nom"
+                        type="text"
+                        placeholder="Votre nom"
+                        autocomplete="name"
+                        required
+                    >
+                </div>
 
-<label>Confirmer le mot de passe :</label>
-<input type="password" name="confirmation" minlength="8" required>
+                <div class="champ_inscription">
+                    <label for="email_inscription">Adresse e-mail</label>
+                    <input
+                        id="email_inscription"
+                        name="email"
+                        type="email"
+                        placeholder="exemple@gmail.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
 
-<button type="submit">S'inscrire</button>
+                <div class="champ_inscription">
+                    <label for="mdp_inscription">Mot de passe</label>
+                    <input
+                        id="mdp_inscription"
+                        name="password"
+                        type="password"
+                        placeholder="8 caractères minimum"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
 
-</form>
+                <div class="champ_inscription">
+                    <label for="confirmation_inscription">Confirmer le mot de passe</label>
+                    <input
+                        id="confirmation_inscription"
+                        name="confirmation"
+                        type="password"
+                        placeholder="Confirmez votre mot de passe"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required
+                    >
+                </div>
 
-<p>
-    Déjà inscrit ?
-    <a href="login.php">Se connecter</a>
-</p>
+                <button class="bouton_inscription" type="submit">
+                    S'inscrire
+                </button>
 
-</main>
+                <p class="lien_connexion">
+                    Déjà inscrit ?
+                    <a href="login.php">Se connecter</a>
+                </p>
 
-<footer class="bloc footer">
-    <!-- Insertion footer en JS -->
-</footer>
+            </form>
+        </section>
+    </main>
 
-<script type="module" src="./js/layout.js"></script>
+    <footer class="bloc footer">
+        <!-- Insertion footer en JS -->
+    </footer>
+
+    <script type="module" src="./js/layout.js"></script>
 
 </body>
 </html>

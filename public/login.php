@@ -1,98 +1,132 @@
+
 <?php
 session_start();
 
-//Verifie si l'utilisateur est connecté
-if (isset($_SESSION["utilisateur"])){
-
-     //Redirige vers le profil
-    header("Location: login.php");
-    exit();
-}
-$message ="";
-
-if ($_SERVER ["REQUEST_METHOD"] == "POST"){
-
-$email = trim($_POST["email"]?? "");
-$password = $_POST["password"]?? "";
-
-
-if (empty($email)|| empty($password)){
-    $message = "Veuillez remplir tous les champs.";
-
-}
-
-elseif (!filter_var($email,FILTER_VALIDATE_EMAIL)){
-    $message = "Adresse email invalide.";
-}
-
-elseif (
-    $email == "test@bobines.fr" &&
-    $password == "Test1234!"
-){
-    session_regenerate_id(true);
-
-    $_SESSION["utilisateur"] = [
-        "nom" => "Utilisateur Test",
-        "email" => $email
-    ];
-
-    //Redirige vers le profil
+// Si l'utilisateur est déjà connecté, direction son profil
+if (isset($_SESSION["utilisateur"])) {
     header("Location: profile.php");
     exit();
 }
 
-else{
-    $message="Email ou mot de passe incorect.";
+$message = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $email = trim($_POST["email"] ?? "");
+    $password = $_POST["password"] ?? "";
+
+    if (empty($email) || empty($password)) {
+        $message = "Veuillez remplir tous les champs.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Adresse email invalide.";
+    } else {
+        try {
+            require_once __DIR__ . "/../config/database.php";
+
+            $sql = "SELECT id_utilisateur, nom, adresse_mail, mdp
+                    FROM utilisateur
+                    WHERE adresse_mail = ?";
+
+            $requete = $pdo->prepare($sql);
+            $requete->execute([$email]);
+
+            $utilisateur = $requete->fetch(PDO::FETCH_ASSOC);
+
+            if ($utilisateur && password_verify($password, $utilisateur["mdp"])) {
+
+                session_regenerate_id(true);
+
+                $_SESSION["utilisateur"] = [
+                    "id_utilisateur" => $utilisateur["id_utilisateur"],
+                    "nom" => $utilisateur["nom"],
+                    "email" => $utilisateur["adresse_mail"]
+                ];
+
+                header("Location: profile.php");
+                exit();
+
+            } else {
+                $message = "Email ou mot de passe incorrect.";
+            }
+
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            $message = "Une erreur est survenue lors de la connexion à la base de données.";
+        }
     }
 }
-?> 
-
+?>
 
 <!doctype html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Accueil | Bob'ines </title>
+    <title>Connexion | Bob'ines</title>
     <link rel="stylesheet" href="./css/common.css">
-    <link rel="stylesheet" href="./css/index.css">
+    <link rel="stylesheet" href="./css/login.css">
 </head>
 
 <body class="conteneur">
 
-<header class="bloc header">
-    <!-- Insertion header en JS -->
-</header>
+    <header class="bloc header">
+        <!-- Insertion header en JS -->
+    </header>
 
-<main>
+    <main>
+        <h1>Connexion</h1>
 
-    <h1>Se connecter</h1>
+        <section class="section_page section_connexion">
+            <form class="formulaire_connexion" action="login.php" method="post">
 
-    <p><?= htmlspecialchars($message) ?></p>
+                <h2>Se connecter</h2>
 
-    <form method="POST" action="login.php">
+                <?php if ($message !== ""): ?>
+                    <p><?= htmlspecialchars($message) ?></p>
+                <?php endif; ?>
 
-    <label>Email :</label>
-    <input type="email" name="email" required>
+                <div class="champ_connexion">
+                    <label for="email_connexion">Adresse e-mail</label>
+                    <input
+                        id="email_connexion"
+                        name="email"
+                        type="email"
+                        placeholder="exemple@gmail.com"
+                        autocomplete="email"
+                        required
+                    >
+                </div>
 
-    <label>Mot de passe :</label>
-    <input type="password" name="password" required>
-    
-    <button type="submit">Se connecter </button>
+                <div class="champ_connexion">
+                    <label for="mdp_connexion">Mot de passe</label>
+                    <input
+                        id="mdp_connexion"
+                        name="password"
+                        type="password"
+                        placeholder="Votre mot de passe"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
 
-    </form>
+                <button class="bouton_connexion" type="submit">
+                    Se connecter
+                </button>
 
-    <p>
-        Pas encore inscrit ?
-        <a href="register.php">Crée un compte</a>
-    </p>
-</main>
+                <p class="lien_inscription">
+                    Pas encore de compte ?
+                    <a href="register.php">S'inscrire</a>
+                </p>
 
-<footer class="bloc footer">
-    <!-- Insertion footer en JS -->
-</footer>
+            </form>
+        </section>
+    </main>
 
-<script type="module" src="./js/layout.js"></script>
+    <footer class="bloc footer">
+        <!-- Insertion footer en JS -->
+    </footer>
+
+    <script type="module" src="./js/layout.js"></script>
 
 </body>
 </html>

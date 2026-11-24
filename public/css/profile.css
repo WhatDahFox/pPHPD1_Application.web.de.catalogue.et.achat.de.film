@@ -1,0 +1,145 @@
+/* ========================================
+1. Informations du compte
+========================================= */
+
+.contenu_profil {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+}
+
+.contenu_profil p {
+    margin: 0.5rem 0;
+}
+
+/* ========================================
+2. Films achetés
+========================================= */
+
+.ligne_achat {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+}
+
+.affiche_achat {
+    width: 120px;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+
+.informations_achat p {
+    color: var(--texte_secondaire);
+}
+
+/* ========================================
+3. Modification du mot de passe
+========================================= */
+
+.formulaire_mdp {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 450px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid var(--bordure);
+    border-radius: 1rem;
+    background-color: var(--fond_carte);
+    box-sizing: border-box;
+}
+
+.champ_profil {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.champ_profil label {
+    font-weight: var(--graisse_semi_grasse);
+}
+
+.champ_profil input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--bordure);
+    border-radius: 0.5rem;
+    background-color: #FFFFFF;
+    color: var(--texte_principal);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_texte);
+    box-sizing: border-box;
+}
+
+.champ_profil input:focus {
+    border-color: var(--couleur_accent);
+    outline-color: var(--couleur_accent);
+}
+
+.bouton_modifier_mdp,
+.bouton_deconnexion {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--texte_principal);
+    border-radius: 0.5rem;
+    background-color: var(--texte_principal);
+    color: var(--fond_carte);
+    font-family: var(--police_principale), sans-serif;
+    font-size: var(--taille_bouton);
+    font-weight: var(--graisse_semi_grasse);
+    cursor: pointer;
+}
+
+.bouton_modifier_mdp:disabled,
+.bouton_deconnexion:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========================================
+4. Déconnexion
+========================================= */
+
+.section_deconnexion form {
+    display: flex;
+    justify-content: center;
+    margin: 2rem auto;
+}
+
+.bouton_deconnexion {
+    border-color: var(--couleur_accent);
+    background-color: var(--couleur_accent);
+}
+
+/* ========================================
+X. Responsive
+========================================= */
+
+@media (max-width: 870px) {
+
+    .contenu_profil {
+        padding: 1.5rem;
+    }
+
+    .ligne_achat {
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .affiche_achat {
+        width: 90px;
+    }
+
+    .formulaire_mdp {
+        padding: 1.5rem;
+    }
+}

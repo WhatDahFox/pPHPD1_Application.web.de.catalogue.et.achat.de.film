@@ -11,6 +11,7 @@ if (!$id || !isset($films[$id])) {
     $film = $films[$id];
 }
 ?>
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -20,65 +21,85 @@ if (!$id || !isset($films[$id])) {
     <link rel="stylesheet" href="./css/common.css">
     <link rel="stylesheet" href="./css/movie.css">
 </head>
+
 <body class="conteneur">
 
 <header class="bloc header"></header>
 
 <main>
-<?php if ($film === null): ?>
-    <h1>Film introuvable</h1>
-    <a href="index.php">Retour au catalogue</a>
-<?php else: ?>
-    <h1>Fiche du film</h1>
+    <?php if ($film === null): ?>
 
-    <section class="section_page section_film">
-        <h2 class="titre_section">Détails du film</h2>
+        <h1>Film introuvable</h1>
+        <a href="index.php">Retour au catalogue</a>
 
-        <article class="details_film">
-            <div class="conteneur_affiche">
-                <img class="affiche_details"
-                     src="./images/affiche_indisponible.png"
-                     alt="Affiche indisponible">
-            </div>
+    <?php else: ?>
 
-            <div class="informations_film">
-                <h3 class="titre_details_film">
-                    <?= htmlspecialchars($film['titre']) ?>
-                </h3>
+        <h1>Fiche du film</h1>
 
-                <div class="donnees_film">
-                    <p><strong>Année de sortie :</strong>
-                        <?= htmlspecialchars((string) $film['annee']) ?></p>
-                    <p><strong>Catégorie :</strong>
-                        <?= htmlspecialchars($film['categorie']) ?></p>
-                    <p><strong>Réalisateur :</strong>
-                        <?= htmlspecialchars($film['realisateur']) ?></p>
+        <section class="section_page section_film">
+            <h2 class="titre_section">Détails du film</h2>
+
+            <article class="details_film">
+
+                <div class="conteneur_affiche">
+                    <img
+                        class="affiche_details"
+                        src="./images/affiche_indisponible.png"
+                        alt="Affiche indisponible"
+                    >
                 </div>
 
-                <div class="synopsis_film">
-                    <h4>Synopsis</h4>
-                    <p>Le résumé de ce film sera ajouté ultérieurement.</p>
-                </div>
+                <div class="informations_film">
 
-                <div class="achat_film">
-                    <p class="prix_details_film">
-                        <?= number_format($film['prix'], 2, ',', ' ') ?> €
-                    </p>
+                    <h3 class="titre_details_film">
+                        <?= htmlspecialchars($film['titre']) ?>
+                    </h3>
 
-                    <form method="POST" action="cart.php">
-                        <input type="hidden" name="id" value="<?= $id ?>">
-                        <button class="bouton_panier" type="submit" name="ajouter">
-                            Ajouter au panier
-                        </button>
-                    </form>
+                    <div class="donnees_film">
+                        <p>
+                            <strong>Année de sortie :</strong>
+                            <?= htmlspecialchars((string) $film['annee']) ?>
+                        </p>
+
+                        <p>
+                            <strong>Catégorie :</strong>
+                            <?= htmlspecialchars($film['categorie']) ?>
+                        </p>
+
+                        <p>
+                            <strong>Réalisateur :</strong>
+                            <?= htmlspecialchars($film['realisateur']) ?>
+                        </p>
+                    </div>
+
+                    <div class="synopsis_film">
+                        <h4>Synopsis</h4>
+                        <p>Le résumé de ce film sera ajouté ultérieurement.</p>
+                    </div>
+
+                    <div class="achat_film">
+                        <p class="prix_details_film">
+                            <?= number_format($film['prix'], 2, ',', ' ') ?> €
+                        </p>
+
+                        <form method="POST" action="cart.php">
+                            <input type="hidden" name="id" value="<?= (int) $id ?>">
+                            <button class="bouton_panier" type="submit" name="ajouter">
+                                Ajouter au panier
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
-            </div>
-        </article>
-    </section>
-<?php endif; ?>
+            </article>
+        </section>
+
+    <?php endif; ?>
 </main>
 
 <footer class="bloc footer"></footer>
+
 <script type="module" src="./js/layout.js"></script>
+
 </body>
 </html>
