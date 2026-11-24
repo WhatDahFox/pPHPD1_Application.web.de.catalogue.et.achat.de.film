@@ -3,6 +3,8 @@
     // Démarrage de la session PHP
     session_start();
 
+    // Récupération des informations de l'utilisateur connecté
+    $utilisateur = $_SESSION["utilisateur"] ?? null;
 ?>
 
 <!doctype html>
@@ -31,8 +33,14 @@
         <section class="section_page section_profil">
             <h2 class="titre_section"> Mes informations </h2>
             <div class="contenu_profil">
-                <p><strong> Nom : </strong> Utilisateur exemple </p>
-                <p><strong> Adresse mail : </strong> exemple@gmail.com </p>
+                <p>
+                    <strong> Nom : </strong>
+                    <?= htmlspecialchars($utilisateur["nom"] ?? "", ENT_QUOTES, 'UTF-8') ?>
+                </p>
+                <p>
+                    <strong> Adresse mail : </strong>
+                    <?= htmlspecialchars($utilisateur["email"] ?? "", ENT_QUOTES, 'UTF-8') ?>
+                </p>
             </div>
         </section>
 
