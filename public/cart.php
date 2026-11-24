@@ -75,6 +75,31 @@
         exit();
     }
 
+    // Suppression d'un film du panier
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["supprimer"])) {
+
+        $idFilm = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
+
+        if ($idFilm !== false && $idFilm !== null && $idFilm > 0) {
+
+            try {
+                // Suppression du film appartenant au panier utilisateur
+                $sql = "DELETE FROM contient
+                        WHERE id_film = ? AND id_panier = ?";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idFilm, $idPanier]);
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+            }
+        }
+
+        // Redirection vers le panier
+        header("Location: cart.php");
+        exit();
+    }
+
     // Récupération des films présents dans le panier
     try {
         $sql = "SELECT film.id_film, film.titre, film.affiche,
@@ -158,7 +183,10 @@
                                 <p class="sous_total_panier">
                                     <?= number_format((float) $film["prix"] * (int) $film["quantite"], 2, ",", " ") ?> €
                                 </p>
-                                <button class="bouton_supprimer" type="button" disabled> Supprimer </button>
+                                <form action="cart.php" method="post">
+                                    <input type="hidden" name="id" value="<?= (int) $film["id_film"] ?>">
+                                    <button class="bouton_supprimer" type="submit" name="supprimer"> Supprimer </button>
+                                </form>
                             </div>
                         </article>
                     <?php endforeach; ?>
