@@ -119,6 +119,8 @@
         exit();
     }
 
+    $erreurChargementPanier = false;
+
     // Récupération des films présents dans le panier
     try {
         $sql = "SELECT film.id_film, film.titre, film.affiche,
@@ -135,6 +137,7 @@
     } catch (PDOException $e) {
         error_log($e->getMessage());
         $filmsPanier = [];
+        $erreurChargementPanier = true;
     }
 
     // Calcul du nombre d'articles et du montant total
@@ -147,6 +150,80 @@
 
         $nombreArticles += $quantite;
         $totalPanier += $prix * $quantite;
+    }
+
+    // Validation du panier et enregistrement de la commande
+    $messageValidation = "";
+
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["valider"])) {
+
+        if ($erreurChargementPanier) {
+            $messageValidation = "Impossible de récupérer votre panier. Veuillez réessayer.";
+
+        } elseif (!empty($filmsPanier)) {
+
+            try {
+                // Démarrage de la transaction
+                $pdo->beginTransaction();
+
+                // Création de la commande
+                $sql = "INSERT INTO commande (date_commande, id_utilisateur)
+                        VALUES (NOW(), ?)";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idUtilisateur]);
+
+                $idCommande = $pdo->lastInsertId();
+
+                // Enregistrement des films achetés
+                $sql = "INSERT INTO contenant
+                        (id_film, id_commande, quantite, prix_achat)
+                        VALUES (?, ?, ?, ?)";
+
+                $requete = $pdo->prepare($sql);
+
+                foreach ($filmsPanier as $film) {
+
+                    $requete->execute([
+                            $film["id_film"],
+                            $idCommande,
+                            $film["quantite"],
+                            $film["prix"]
+                    ]);
+                }
+
+                // Vidage du panier après l'achat
+                $sql = "DELETE FROM contient WHERE id_panier = ?";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idPanier]);
+
+                // Confirmation de toutes les opérations SQL
+                $pdo->commit();
+
+                // Redirection après validation
+                header("Location: cart.php?achat=ok");
+                exit();
+
+            } catch (PDOException $e) {
+
+                // Annulation de l'ensemble de la transaction
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                error_log($e->getMessage());
+                $messageValidation = "Une erreur est survenue lors de l'achat.";
+            }
+
+        } else {
+            $messageValidation = "Impossible de valider un panier vide.";
+        }
+    }
+
+    // Confirmation après redirection
+    if (isset($_GET["achat"]) && $_GET["achat"] === "ok") {
+        $messageValidation = "Votre achat a été enregistré avec succès.";
     }
 
 ?>
@@ -177,8 +254,11 @@
         <section class="section_page section_panier">
             <h2 class="titre_section"> Films sélectionnés </h2>
             <div class="liste_panier">
-                <?php if (empty($filmsPanier)): ?>
+                <?php if ($erreurChargementPanier): ?>
+                    <p> Impossible de charger votre panier. Veuillez réessayer ultérieurement. </p>
+                <?php elseif (empty($filmsPanier)): ?>
                     <p> Votre panier est vide. </p>
+                    <p> <a href="index.php"> Retour au catalogue </a> </p>
                 <?php else: ?>
                     <?php foreach ($filmsPanier as $film): ?>
                         <article class="ligne_panier">
@@ -241,7 +321,19 @@
                             <strong> Total : </strong>
                             <span> <?= number_format($totalPanier, 2, ",", " ") ?> € </span>
                         </p>
-                        <button class="bouton_valider" type="button" disabled> Valider le panier </button>
+                        <form action="cart.php" method="post">
+                            <button
+                                    class="bouton_valider"
+                                    type="submit"
+                                    name="valider"
+                                    <?= (empty($filmsPanier) || $erreurChargementPanier) ? "disabled" : "" ?>
+                            >
+                                Valider le panier
+                            </button>
+                            <?php if ($messageValidation !== ""): ?>
+                                <p> <?= htmlspecialchars($messageValidation, ENT_QUOTES, 'UTF-8') ?> </p>
+                            <?php endif; ?>
+                        </form>
                     </div>
                 </section>
     </main>

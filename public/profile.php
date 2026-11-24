@@ -19,6 +19,32 @@
     // Connexion PDO
     require_once __DIR__ . "/../config/database.php";
 
+
+    // Récupération des films achetés par l'utilisateur
+    $filmsAchetes = [];
+
+    try {
+        $sql = "SELECT film.id_film, film.titre, film.affiche,
+                           contenant.quantite, contenant.prix_achat,
+                           commande.date_commande
+                    FROM contenant
+                    INNER JOIN commande
+                        ON contenant.id_commande = commande.id_commande
+                    INNER JOIN film
+                        ON contenant.id_film = film.id_film
+                    WHERE commande.id_utilisateur = ?
+                    ORDER BY commande.date_commande DESC, commande.id_commande DESC";
+
+        $requete = $pdo->prepare($sql);
+        $requete->execute([$utilisateur["id_utilisateur"]]);
+
+        $filmsAchetes = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+    }
+
+
     // Modification du mot de passe
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
@@ -114,39 +140,32 @@
         <section class="section_page section_achats">
             <h2 class="titre_section"> Ma collection </h2>
             <div class="liste_films">
-                <!-- Film acheté provisoire -->
-                <article class="ligne_achat">
-                    <img class="affiche_achat" src="images/affiche_indisponible.png" alt="Affiche du film">
-                    <div class="informations_achat">
-                        <h3 class="titre_film">Film exemple</h3>
-                        <p>Date d'achat : 18/11/2026</p>
-                        <p>Prix payé : 9,90 €</p>
-                        <a href="movie.php">Voir les détails du film</a>
-                    </div>
-                </article>
-                <!-- ---------------------- -->
-                <!-- Film acheté provisoire -->
-                <article class="ligne_achat">
-                    <img class="affiche_achat" src="images/affiche_indisponible.png" alt="Affiche du film">
-                    <div class="informations_achat">
-                        <h3 class="titre_film">Film exemple</h3>
-                        <p>Date d'achat : 18/11/2026</p>
-                        <p>Prix payé : 9,90 €</p>
-                        <a href="movie.php">Voir les détails du film</a>
-                    </div>
-                </article>
-                <!-- ---------------------- -->
-                <!-- Film acheté provisoire -->
-                <article class="ligne_achat">
-                    <img class="affiche_achat" src="images/affiche_indisponible.png" alt="Affiche du film">
-                    <div class="informations_achat">
-                        <h3 class="titre_film">Film exemple</h3>
-                        <p>Date d'achat : 18/11/2026</p>
-                        <p>Prix payé : 9,90 €</p>
-                        <a href="movie.php">Voir les détails du film</a>
-                    </div>
-                </article>
-                <!-- ---------------------- -->
+                <?php if (empty($filmsAchetes)): ?>
+                    <p>Vous n'avez encore acheté aucun film.</p>
+                <?php else: ?>
+                    <?php foreach ($filmsAchetes as $film): ?>
+                        <article class="ligne_achat">
+                            <img
+                                    class="affiche_achat"
+                                    src="<?= htmlspecialchars(
+                                            !empty($film["affiche"])
+                                                    ? $film["affiche"]
+                                                    : "images/affiche_indisponible.png",
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                    ) ?>"
+                                    alt="Affiche de <?= htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>"
+                            >
+                            <div class="informations_achat">
+                                <h3 class="titre_film"> <?= htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?> </h3>
+                                <p> Date d'achat : <?= date("d/m/Y", strtotime($film["date_commande"])) ?> </p>
+                                <p> Quantité : <?= (int) $film["quantite"] ?> </p>
+                                <p> Prix payé : <?= number_format((float) $film["prix_achat"], 2, ",", " ") ?> €  / unité </p>
+                                <a href="movie.php?id=<?= (int) $film["id_film"] ?>"> Voir les détails du film </a>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </section>
 
