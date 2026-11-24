@@ -1,3 +1,75 @@
+<?php
+
+    // Démarrage de la session PHP
+    session_start();
+
+    // Vérification de la connexion
+    if (!isset($_SESSION["utilisateur"]["id_utilisateur"])) {
+        header("Location: login.php");
+        exit();
+    }
+
+    // Récupération des informations de l'utilisateur connecté
+    $utilisateur = $_SESSION["utilisateur"] ?? null;
+
+    // Initialisation du message
+    $message = "";
+    $messageType = "";
+
+    // Connexion PDO
+    require_once __DIR__ . "/../config/database.php";
+
+    // Modification du mot de passe
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        $ancienPassword = $_POST["mdp_actuel"] ?? "";
+        $nouveauPassword = $_POST["nouveau_mdp"] ?? "";
+        $confirmation = $_POST["confirmation_mdp"] ?? "";
+
+        if (empty($ancienPassword) || empty($nouveauPassword) || empty($confirmation)) {
+            $message = "Veuillez remplir tous les champs.";
+
+        } elseif (strlen($nouveauPassword) < 8) {
+            $message = "Le nouveau mot de passe doit contenir 8 caractères minimum.";
+
+        } elseif ($nouveauPassword !== $confirmation) {
+            $message = "Les nouveaux mots de passe sont différents.";
+
+        } else {
+            try {
+                // Récupération du mot de passe actuel
+                $sql = "SELECT mdp FROM utilisateur WHERE id_utilisateur = ?";
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$utilisateur["id_utilisateur"]]);
+                $compte = $requete->fetch(PDO::FETCH_ASSOC);
+
+                if (!$compte || !password_verify($ancienPassword, $compte["mdp"])) {
+                    $message = "Le mot de passe actuel est incorrect.";
+
+                } else {
+                    // Hachage et enregistrement du nouveau mot de passe
+                    $hash = password_hash($nouveauPassword, PASSWORD_DEFAULT);
+
+                    $sql = "UPDATE utilisateur SET mdp = ? WHERE id_utilisateur = ?";
+                    $requete = $pdo->prepare($sql);
+                    $requete->execute([$hash, $utilisateur["id_utilisateur"]]);
+
+                    $message = "Votre mot de passe a été modifié.";
+                    $messageType = "succes";
+                }
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+                $message = "Impossible de modifier le mot de passe.";
+            }
+        }
+
+        if ($messageType === "") {
+            $messageType = "erreur";
+        }
+    }
+?>
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -24,8 +96,14 @@
         <section class="section_page section_profil">
             <h2 class="titre_section"> Mes informations </h2>
             <div class="contenu_profil">
-                <p><strong> Nom : </strong> Utilisateur exemple </p>
-                <p><strong> Adresse mail : </strong> exemple@gmail.com </p>
+                <p>
+                    <strong> Nom : </strong>
+                    <?= htmlspecialchars($utilisateur["nom"] ?? "", ENT_QUOTES, 'UTF-8') ?>
+                </p>
+                <p>
+                    <strong> Adresse mail : </strong>
+                    <?= htmlspecialchars($utilisateur["email"] ?? "", ENT_QUOTES, 'UTF-8') ?>
+                </p>
             </div>
         </section>
 
@@ -78,6 +156,9 @@
 
         <section class="section_page section_mdp">
             <h2 class="titre_section"> Modifier mon mot de passe </h2>
+            <?php if ($message !== ""): ?>
+                <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
+            <?php endif; ?>
             <form class="formulaire_mdp"
                   action="profile.php"
                   method="post">
@@ -116,7 +197,6 @@
                 <button
                      class="bouton_modifier_mdp"
                      type="submit"
-                     disabled
                 >
                     Modifier le mot de passe
                 </button>
@@ -134,7 +214,6 @@
                 <button
                     class="bouton_deconnexion"
                     type="submit"
-                    disabled
                 >
                     Se déconnecter
                 </button>
