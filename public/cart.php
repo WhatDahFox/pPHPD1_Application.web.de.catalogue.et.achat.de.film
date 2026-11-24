@@ -75,6 +75,24 @@
         exit();
     }
 
+    // Récupération des films présents dans le panier
+    try {
+        $sql = "SELECT film.id_film, film.titre, film.affiche,
+                       film.prix, contient.quantite
+                FROM contient
+                INNER JOIN film ON contient.id_film = film.id_film
+                WHERE contient.id_panier = ?";
+
+        $requete = $pdo->prepare($sql);
+        $requete->execute([$idPanier]);
+
+        $filmsPanier = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        $filmsPanier = [];
+    }
+
 ?>
 
 <!doctype html>
@@ -103,54 +121,48 @@
         <section class="section_page section_panier">
             <h2 class="titre_section"> Films sélectionnés </h2>
             <div class="liste_panier">
-                <!-- film provisoire -->
-                <article class="ligne_panier">
-                    <img class="affiche_panier" src="images/affiche_indisponible.png" alt="Affiche du film">
-                    <div class="informations_panier">
-                        <h3 class="titre_film">Film exemple 1</h3>
-                        <a href="movie.php">Voir les détails du film</a>
-                        <p> Prix unitaire : 10 € </p>
-                        <label for="quantite_film_1">Quantité :</label>
-                        <input class="quantite_panier" id="quantite_film_1" type="number" value="2" min="1" disabled>
-                    </div>
-                    <div class="actions_panier">
-                        <p class="sous_total_panier">20 €</p>
-                        <button class="bouton_supprimer" type="button" disabled>Supprimer</button>
-                    </div>
-                </article>
-                <!-- ---------------- -->
-                <!-- film provisoire -->
-                <article class="ligne_panier">
-                    <img class="affiche_panier" src="images/affiche_indisponible.png" alt="Affiche du film">
-                    <div class="informations_panier">
-                        <h3 class="titre_film">Film exemple 1</h3>
-                        <a href="movie.php">Voir les détails du film</a>
-                        <p>Prix unitaire : 20 €</p>
-                        <label for="quantite_film_2">Quantité :</label>
-                        <input class="quantite_panier" id="quantite_film_2" type="number" value="2" min="1" disabled>
-                    </div>
-                    <div class="actions_panier">
-                        <p class="sous_total_panier">40 €</p>
-                        <button class="bouton_supprimer" type="button" disabled>Supprimer</button>
-                    </div>
-                </article>
-                <!-- ---------------- -->
-                <!-- film provisoire -->
-                <article class="ligne_panier">
-                    <img class="affiche_panier" src="images/affiche_indisponible.png" alt="Affiche du film">
-                    <div class="informations_panier">
-                        <h3 class="titre_film">Film exemple 1</h3>
-                        <a href="movie.php">Voir les détails du film</a>
-                        <p>Prix unitaire : 30 €</p>
-                        <label for="quantite_film_3">Quantité :</label>
-                        <input class="quantite_panier" id="quantite_film_3" type="number" value="2" min="1" disabled>
-                    </div>
-                    <div class="actions_panier">
-                        <p class="sous_total_panier">60 €</p>
-                        <button class="bouton_supprimer" type="button" disabled>Supprimer</button>
-                    </div>
-                </article>
-                <!-- ---------------- -->
+                <?php if (empty($filmsPanier)): ?>
+                    <p> Votre panier est vide. </p>
+                <?php else: ?>
+                    <?php foreach ($filmsPanier as $film): ?>
+                        <article class="ligne_panier">
+                            <img
+                                    class="affiche_panier"
+                                    src="<?= htmlspecialchars(
+                                            !empty($film["affiche"]) ? $film["affiche"] : "images/affiche_indisponible.png",
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                    ) ?>"
+                                    alt="Affiche de <?= htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>"
+                            >
+                            <div class="informations_panier">
+                                <h3 class="titre_film">
+                                    <?= htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>
+                                </h3>
+                                <a href="movie.php?id=<?= (int) $film["id_film"] ?>"> Voir les détails du film </a>
+                                <p>
+                                    Prix unitaire :
+                                    <?= number_format((float) $film["prix"], 2, ",", " ") ?> €
+                                </p>
+                                <label for="quantite_film_<?= (int) $film["id_film"] ?>"> Quantité : </label>
+                                <input
+                                        class="quantite_panier"
+                                        id="quantite_film_<?= (int) $film["id_film"] ?>"
+                                        type="number"
+                                        value="<?= (int) $film["quantite"] ?>"
+                                        min="1"
+                                        disabled
+                                >
+                            </div>
+                            <div class="actions_panier">
+                                <p class="sous_total_panier">
+                                    <?= number_format((float) $film["prix"] * (int) $film["quantite"], 2, ",", " ") ?> €
+                                </p>
+                                <button class="bouton_supprimer" type="button" disabled> Supprimer </button>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </section>
                 <!-- =================================
