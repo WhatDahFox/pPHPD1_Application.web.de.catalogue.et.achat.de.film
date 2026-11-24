@@ -9,6 +9,38 @@
         exit();
     }
 
+    // Connexion PDO
+    require_once __DIR__ . "/../config/database.php";
+
+    // Récupération ou création du panier utilisateur
+    try {
+        $idUtilisateur = $_SESSION["utilisateur"]["id_utilisateur"];
+
+        // Recherche du panier existant
+        $sql = "SELECT id_panier FROM panier WHERE id_utilisateur = ?";
+        $requete = $pdo->prepare($sql);
+        $requete->execute([$idUtilisateur]);
+
+        $panier = $requete->fetch(PDO::FETCH_ASSOC);
+
+        if ($panier) {
+            $idPanier = $panier["id_panier"];
+
+        } else {
+            // Création du panier pour un nouvel utilisateur
+            $sql = "INSERT INTO panier (id_utilisateur) VALUES (?)";
+            $requete = $pdo->prepare($sql);
+            $requete->execute([$idUtilisateur]);
+
+            $idPanier = $pdo->lastInsertId();
+        }
+
+    } catch (PDOException $e) {
+        error_log($e->getMessage());
+        http_response_code(500);
+        exit("Impossible de récupérer le panier.");
+    }
+
 ?>
 
 <!doctype html>
