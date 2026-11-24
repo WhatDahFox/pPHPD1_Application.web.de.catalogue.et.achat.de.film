@@ -214,7 +214,6 @@
                 <button
                     class="bouton_deconnexion"
                     type="submit"
-                    disabled
                 >
                     Se déconnecter
                 </button>
