@@ -1,3 +1,38 @@
+<?php
+
+    // Initialisation du message de validation
+    $message = "";
+
+    // Traitement du formulaire
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        // Récupération des données
+        $nom = trim($_POST["nom"] ?? "");
+        $email = trim($_POST["email"] ?? "");
+        $password = $_POST["mdp"] ?? "";
+        $confirmation = $_POST["confirmation_mdp"] ?? "";
+
+        // Validation des données
+        if ($nom === "" || $email === "" || $password === "" || $confirmation === "") {
+            $message = "Veuillez remplir tous les champs.";
+
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = "Adresse email invalide.";
+
+        } elseif (strlen($password) < 8) {
+            $message = "Le mot de passe doit contenir 8 caractères minimum.";
+
+        } elseif ($password !== $confirmation) {
+            $message = "Les mots de passe sont différents.";
+
+        } else {
+            $message = "Formulaire valide.";
+        }
+    }
+
+?>
+
+
 <!doctype html>
 <html lang="fr">
 <head>
@@ -27,6 +62,9 @@
                 method="post"
             >
                 <h2> Créer un compte </h2>
+                <?php if ($message !== ""): ?>
+                    <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
+                <?php endif; ?>
                 <div class="champ_inscription">
                     <label for="nom_inscription"> Nom </label>
                     <input
@@ -75,7 +113,7 @@
                 </div>
                 <button class="bouton_inscription"
                         type="submit"
-                        disabled>
+                >
                     S'inscrire
                 </button>
                 <p class="lien_connexion">
