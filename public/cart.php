@@ -149,16 +149,75 @@
         $totalPanier += $prix * $quantite;
     }
 
-    // Validation du panier (achat simulé)
+    // Validation du panier et enregistrement de la commande
     $messageValidation = "";
 
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["valider"])) {
 
         if (!empty($filmsPanier)) {
-            $messageValidation = "Votre achat a été validé (simulation).";
+
+            try {
+                // Démarrage de la transaction
+                $pdo->beginTransaction();
+
+                // Création de la commande
+                $sql = "INSERT INTO commande (date_commande, id_utilisateur)
+                        VALUES (NOW(), ?)";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idUtilisateur]);
+
+                $idCommande = $pdo->lastInsertId();
+
+                // Enregistrement des films achetés
+                $sql = "INSERT INTO contenant
+                        (id_film, id_commande, quantite, prix_achat)
+                        VALUES (?, ?, ?, ?)";
+
+                $requete = $pdo->prepare($sql);
+
+                foreach ($filmsPanier as $film) {
+
+                    $requete->execute([
+                            $film["id_film"],
+                            $idCommande,
+                            $film["quantite"],
+                            $film["prix"]
+                    ]);
+                }
+
+                // Vidage du panier après l'achat
+                $sql = "DELETE FROM contient WHERE id_panier = ?";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idPanier]);
+
+                // Confirmation de toutes les opérations SQL
+                $pdo->commit();
+
+                // Redirection après validation
+                header("Location: cart.php?achat=ok");
+                exit();
+
+            } catch (PDOException $e) {
+
+                // Annulation de l'ensemble de la transaction
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+
+                error_log($e->getMessage());
+                $messageValidation = "Une erreur est survenue lors de l'achat.";
+            }
+
         } else {
             $messageValidation = "Impossible de valider un panier vide.";
         }
+    }
+
+    // Confirmation après redirection
+    if (isset($_GET["achat"]) && $_GET["achat"] === "ok") {
+        $messageValidation = "Votre achat a été enregistré avec succès.";
     }
 
 ?>
