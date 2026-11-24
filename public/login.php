@@ -1,3 +1,16 @@
+<?php
+
+    // Démarrage de la session PHP
+    session_start();
+
+    // Redirection si l'utilisateur est déjà connecté
+    if (isset($_SESSION["utilisateur"])) {
+        header("Location: profile.php");
+        exit();
+    }
+
+?>
+
 <!doctype html>
 <html lang="fr">
 <head>

@@ -63,7 +63,7 @@
                 $message = "Une erreur est survenue lors de l'inscription.";
             }
         }
-
+    }
 ?>
 
 
