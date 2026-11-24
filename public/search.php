@@ -64,6 +64,7 @@
                         name="recherche"
                         type="search"
                         placeholder="Titre ou réalisateur..."
+                        value="<?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>"
                         required
                     >
                     <button class="bouton_recherche" type="submit"> Rechercher </button>
@@ -86,10 +87,12 @@
                     <?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>
                 </p>
             <?php else: ?>
-            <h2 class="titre_section">
-                Résultats de la recherche pour :
-                <?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>
-            </h2>
+                <h2 class="titre_section">
+                    <?= count($filmsRecherches) ?>
+                    résultat<?= count($filmsRecherches) > 1 ? "s" : "" ?>
+                    pour :
+                    <?= htmlspecialchars($termeRecherche, ENT_QUOTES, 'UTF-8') ?>
+                </h2>
             <div class="liste_films">
                 <!-- Cartes de film générées dynamiquement -->
                 <?php foreach ($filmsRecherches as $film): ?>

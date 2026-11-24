@@ -2,6 +2,14 @@
     //Connexion PDO
     require_once __DIR__ . "/../config/database.php";
 
+    // Récupération de toutes les catégories
+    $requeteCategories = $pdo->query(
+            "SELECT id_categorie, nom
+                    FROM categorie
+                    ORDER BY nom");
+
+    $categories = $requeteCategories->fetchAll(PDO::FETCH_ASSOC);
+
     // Récupération de la catégorie sélectionnée (action par défaut)
     $categorieSelectionnee = $_GET["categorie"] ?? "action";
 
@@ -50,11 +58,11 @@
         ===================================== -->
 
         <nav class="navigation_categories">
-            <a class="lien_categorie" href="category.php?categorie=Action"> Action </a>
-            <a class="lien_categorie" href="category.php?categorie=Comédie"> Comédie </a>
-            <a class="lien_categorie" href="category.php?categorie=Drame"> Drame </a>
-            <a class="lien_categorie" href="category.php?categorie=Horreur"> Horreur </a>
-            <a class="lien_categorie" href="category.php?categorie=Thriller"> Thriller </a>
+            <?php foreach ($categories as $categorie): ?>
+                <a class="lien_categorie" href="category.php?categorie=<?= urlencode($categorie["nom"]) ?>">
+                    <?= htmlspecialchars($categorie["nom"], ENT_QUOTES, 'UTF-8') ?>
+                </a>
+            <?php endforeach; ?>
         </nav>
 
         <!-- =================================

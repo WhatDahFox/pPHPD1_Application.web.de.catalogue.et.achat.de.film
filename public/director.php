@@ -86,7 +86,7 @@
                 <div class="conteneur_portrait">
                     <img
                             class="portrait_realisateur"
-                            src="<?= htmlspecialchars($ficheRealisateur["portrait"] ?? "images/portrait_indisponible.png", ENT_QUOTES, 'UTF-8') ?>"
+                            src="<?= htmlspecialchars(!empty($ficheRealisateur["portrait"]) ? $ficheRealisateur["portrait"] : "images/portrait_indisponible.png", ENT_QUOTES, 'UTF-8')?>"
                             alt="Portrait de <?= htmlspecialchars($ficheRealisateur["prenom"] . " " . $ficheRealisateur["nom"], ENT_QUOTES, 'UTF-8') ?>"
                     >
                 </div>
@@ -94,12 +94,19 @@
                     <h3 class="nom_realisateur"> <?= htmlspecialchars($ficheRealisateur["prenom"] . " " . $ficheRealisateur["nom"], ENT_QUOTES, 'UTF-8') ?> </h3>
                     <div class="donnees_realisateur">
                         <p><strong> Nationalité : </strong> <?= htmlspecialchars($ficheRealisateur["nationalite"], ENT_QUOTES, 'UTF-8') ?> </p>
-                        <p><strong> Date de naissance : </strong> <?= date("d/m/Y", strtotime($ficheRealisateur["date_de_naissance"])) ?> </p>
+                        <p>
+                            <strong> Date de naissance : </strong>
+                            <?= !empty($ficheRealisateur["date_de_naissance"])
+                                    ? date("d/m/Y", strtotime($ficheRealisateur["date_de_naissance"]))
+                                    : "Non renseignée" ?>
+                        </p>
                     </div>
                     <div class="biographie_realisateur">
                         <h4> Biographie </h4>
                         <p>
-                            <?= htmlspecialchars($ficheRealisateur["biographie"], ENT_QUOTES, 'UTF-8') ?>
+                            <?= !empty($ficheRealisateur["biographie"])
+                                    ? htmlspecialchars($ficheRealisateur["biographie"], ENT_QUOTES, 'UTF-8')
+                                    : "Biographie non disponible." ?>
                         </p>
                     </div>
                 </div>
