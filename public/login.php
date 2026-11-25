@@ -15,16 +15,25 @@
     // Traitement du formulaire de connexion
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-        $email = trim($_POST["email"] ?? "");
+        $email = $_POST["email"] ?? "";
         $password = $_POST["password"] ?? "";
 
-        if (empty($email) || empty($password)) {
+        // Validation des données
+        if (!is_string($email) || !is_string($password)) {
+            $message = "Les données envoyées sont invalides.";
+
+        } elseif (strlen(trim($email)) > 254 || strlen($password) > 72) {
+            $message = "Certaines informations sont trop longues.";
+
+        } elseif (empty(trim($email)) || empty($password)) {
             $message = "Veuillez remplir tous les champs.";
 
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var(trim($email), FILTER_VALIDATE_EMAIL)) {
             $message = "Adresse email invalide.";
 
         } else {
+
+            $email = trim($email);
 
             try {
                 // Connexion PDO

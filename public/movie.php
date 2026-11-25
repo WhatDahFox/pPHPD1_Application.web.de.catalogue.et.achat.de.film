@@ -4,7 +4,11 @@
     require_once __DIR__ . "/../config/database.php";
 
     // Récupération de l'identifiant du film via l'URL
-    $idFilm = $_GET["id"] ?? null;
+    $idFilm = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+
+    if ($idFilm === false || $idFilm === null || $idFilm <= 0) {
+        $idFilm = null;
+    }
 
     // Récupération des informations du film
     $requeteIdFilm = $pdo->prepare(

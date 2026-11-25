@@ -13,6 +13,12 @@
     // Récupération de la catégorie sélectionnée (action par défaut)
     $categorieSelectionnee = $_GET["categorie"] ?? "action";
 
+    if (!is_string($categorieSelectionnee)) {
+        $categorieSelectionnee = "action";
+    }
+
+    $categorieSelectionnee = mb_substr(trim($categorieSelectionnee), 0, 100, "UTF-8");
+
     // Récupération des films de la catégorie
     $requete = $pdo->prepare(
             "SELECT id_film, titre, affiche, `resume`, prix

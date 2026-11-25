@@ -4,7 +4,13 @@
     require_once __DIR__ . "/../config/database.php";
 
     // Récupération de la recherche via l'URL
-    $termeRecherche = trim($_GET["recherche"] ?? "");
+    $termeRecherche = $_GET["recherche"] ?? "";
+
+    if (!is_string($termeRecherche)) {
+        $termeRecherche = "";
+    }
+
+    $termeRecherche = mb_substr(trim($termeRecherche), 0, 100, "UTF-8");
     $filmsRecherches = [];
 
     if ($termeRecherche !== "") {

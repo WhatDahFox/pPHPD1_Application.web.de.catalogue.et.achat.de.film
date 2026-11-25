@@ -4,7 +4,11 @@
     require_once __DIR__ . "/../config/database.php";
 
     // Récupération de l'identifiant du réalisateur via l'URL
-    $idRealisateur = $_GET["id"] ?? null;
+    $idRealisateur = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+
+    if ($idRealisateur === false || $idRealisateur === null || $idRealisateur <= 0) {
+        $idRealisateur = null;
+    }
 
     // Récupération du réalisateur
     $requeteRealisateur = $pdo->prepare(

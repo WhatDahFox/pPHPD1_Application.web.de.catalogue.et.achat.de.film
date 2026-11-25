@@ -52,7 +52,22 @@
         $nouveauPassword = $_POST["nouveau_mdp"] ?? "";
         $confirmation = $_POST["confirmation_mdp"] ?? "";
 
-        if (empty($ancienPassword) || empty($nouveauPassword) || empty($confirmation)) {
+        // Validation des données
+        if (
+                !is_string($ancienPassword) ||
+                !is_string($nouveauPassword) ||
+                !is_string($confirmation)
+        ) {
+            $message = "Informations invalides.";
+
+        } elseif (
+                strlen($ancienPassword) > 72 ||
+                strlen($nouveauPassword) > 72 ||
+                strlen($confirmation) > 72
+        ) {
+            $message = "Un des mots de passe est trop long.";
+
+        } elseif (empty($ancienPassword) || empty($nouveauPassword) || empty($confirmation)) {
             $message = "Veuillez remplir tous les champs.";
 
         } elseif (strlen($nouveauPassword) < 8) {

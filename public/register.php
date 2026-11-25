@@ -7,16 +7,32 @@
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // Récupération des données
-        $nom = trim($_POST["nom"] ?? "");
-        $email = trim($_POST["email"] ?? "");
+        $nom = $_POST["nom"] ?? "";
+        $email = $_POST["email"] ?? "";
         $password = $_POST["mdp"] ?? "";
         $confirmation = $_POST["confirmation_mdp"] ?? "";
 
         // Validation des données
-        if ($nom === "" || $email === "" || $password === "" || $confirmation === "") {
+        if (
+                !is_string($nom) ||
+                !is_string($email) ||
+                !is_string($password) ||
+                !is_string($confirmation)
+        ) {
+            $message = "Les données envoyées sont invalides.";
+
+        } elseif (
+                mb_strlen(trim($nom)) > 50 ||
+                strlen(trim($email)) > 254 ||
+                strlen($password) > 72 ||
+                strlen($confirmation) > 72
+        ) {
+            $message = "Certaines informations sont trop longues.";
+
+        } elseif (trim($nom) === "" || trim($email) === "" || $password === "" || $confirmation === "") {
             $message = "Veuillez remplir tous les champs.";
 
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var(trim($email), FILTER_VALIDATE_EMAIL)) {
             $message = "Adresse email invalide.";
 
         } elseif (strlen($password) < 8) {
@@ -26,6 +42,9 @@
             $message = "Les mots de passe sont différents.";
 
         } else {
+
+            $nom = trim($nom);
+            $email = trim($email);
 
             try {
                 // Connexion PDO
