@@ -54,7 +54,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $tokenRecu = $_POST["csrf_token"] ?? "";
 
     if (
-        empty($tokenRecu) ||
+        !is_string($tokenRecu) ||
+        $tokenRecu === "" ||
+        empty($_SESSION["csrf_token"]) ||
         !hash_equals($_SESSION["csrf_token"], $tokenRecu)
     ) {
         http_response_code(403);
@@ -157,7 +159,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $quantite = (int) $film["quantite"];
                 $prix = (float) $film["prix"];
 
-                if ($quantite < 1 || $quantite > 127 || $prix < 0) {
+                if (
+                    $quantite < 1 ||
+                    $quantite > 127 ||
+                    !is_numeric($film["prix"]) ||
+                    !is_finite($prix) ||
+                    $prix < 0
+                ) {
                     throw new Exception("Informations du panier invalides.");
                 }
             }
