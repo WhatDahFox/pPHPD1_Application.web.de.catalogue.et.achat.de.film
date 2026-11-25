@@ -27,7 +27,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $csrf_token = $_POST["csrf_token"] ?? "";
 
     if (
-        empty($csrf_token) ||
+        !is_string($csrf_token) ||
+        $csrf_token === "" ||
+        empty($_SESSION["csrf_token"]) ||
         !hash_equals($_SESSION["csrf_token"], $csrf_token)
     ) {
         $message = "Formulaire invalide. Veuillez réessayer.";
@@ -39,7 +41,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $nouveauPassword = $_POST["nouveau_mdp"] ?? "";
         $confirmation = $_POST["confirmation_mdp"] ?? "";
 
+        // Vérification du type des champs
         if (
+            !is_string($ancienPassword) ||
+            !is_string($nouveauPassword) ||
+            !is_string($confirmation)
+        ) {
+            $message = "Informations invalides.";
+            $messageType = "erreur";
+
+        } elseif (
+            strlen($ancienPassword) > 4096 ||
+            strlen($nouveauPassword) > 4096 ||
+            strlen($confirmation) > 4096
+        ) {
+            $message = "Un des mots de passe est trop long.";
+            $messageType = "erreur";
+
+        } elseif (
             $ancienPassword === "" ||
             $nouveauPassword === "" ||
             $confirmation === ""
@@ -97,6 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 // Récupérer les films achetés
 $achats = [];
+$erreurAchats = false;
 
 try {
     $sql = "SELECT
@@ -164,7 +184,7 @@ try {
 
             <div class="liste_films">
 
-                <?php if (isset($erreurAchats)): ?>
+                <?php if ($erreurAchats): ?>
 
                     <p>Impossible de récupérer votre collection pour le moment.</p>
 

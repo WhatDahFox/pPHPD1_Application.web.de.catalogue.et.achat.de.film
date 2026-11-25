@@ -1,4 +1,5 @@
 
+
 <?php
 session_start();
 
@@ -21,62 +22,81 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $csrf_token = $_POST["csrf_token"] ?? "";
 
     if (
-        empty($csrf_token) ||
+        !is_string($csrf_token) ||
+        $csrf_token === "" ||
+        empty($_SESSION["csrf_token"]) ||
         !hash_equals($_SESSION["csrf_token"], $csrf_token)
     ) {
         $message = "Formulaire invalide. Veuillez réessayer.";
+
     } else {
 
-        $email = trim($_POST["email"] ?? "");
+        $email = $_POST["email"] ?? "";
         $password = $_POST["password"] ?? "";
 
-        if (empty($email) || empty($password)) {
-            $message = "Veuillez remplir tous les champs.";
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $message = "Adresse email invalide.";
+        // Vérification du type des champs
+        if (!is_string($email) || !is_string($password)) {
+            $message = "Informations invalides.";
+
         } else {
-            try {
-                require_once __DIR__ . "/../config/database.php";
 
-                $sql = "SELECT id_utilisateur, nom, adresse_mail, mdp
-                        FROM utilisateur
-                        WHERE adresse_mail = ?";
+            $email = trim($email);
 
-                $requete = $pdo->prepare($sql);
-                $requete->execute([$email]);
+            // Vérification de la longueur des champs
+            if (strlen($email) > 254 || strlen($password) > 4096) {
+                $message = "Les informations saisies sont trop longues.";
 
-                $utilisateur = $requete->fetch(PDO::FETCH_ASSOC);
+            } elseif ($email === "" || $password === "") {
+                $message = "Veuillez remplir tous les champs.";
 
-                if (
-                    $utilisateur &&
-                    password_verify($password, $utilisateur["mdp"])
-                ) {
-                    session_regenerate_id(true);
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $message = "Adresse email invalide.";
 
-                    $_SESSION["utilisateur"] = [
-                        "id_utilisateur" => $utilisateur["id_utilisateur"],
-                        "nom" => $utilisateur["nom"],
-                        "email" => $utilisateur["adresse_mail"]
-                    ];
+            } else {
 
-                    // Renouvellement du jeton après connexion
-                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+                try {
+                    require_once __DIR__ . "/../config/database.php";
 
-                    header("Location: profile.php");
-                    exit();
-                } else {
-                    $message = "Email ou mot de passe incorrect.";
+                    $sql = "SELECT id_utilisateur, nom, adresse_mail, mdp
+                            FROM utilisateur
+                            WHERE adresse_mail = ?";
+
+                    $requete = $pdo->prepare($sql);
+                    $requete->execute([$email]);
+
+                    $utilisateur = $requete->fetch(PDO::FETCH_ASSOC);
+
+                    if (
+                        $utilisateur &&
+                        password_verify($password, $utilisateur["mdp"])
+                    ) {
+                        session_regenerate_id(true);
+
+                        $_SESSION["utilisateur"] = [
+                            "id_utilisateur" => $utilisateur["id_utilisateur"],
+                            "nom" => $utilisateur["nom"],
+                            "email" => $utilisateur["adresse_mail"]
+                        ];
+
+                        // Renouvellement du jeton après connexion
+                        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+
+                        header("Location: profile.php");
+                        exit();
+
+                    } else {
+                        $message = "Email ou mot de passe incorrect.";
+                    }
+
+                } catch (PDOException $e) {
+                    error_log($e->getMessage());
+                    $message = "Une erreur est survenue lors de la connexion à la base de données.";
                 }
-
-            } catch (PDOException $e) {
-                error_log($e->getMessage());
-                $message = "Une erreur est survenue lors de la connexion à la base de données.";
             }
         }
     }
 }
 ?>
-
 <!doctype html>
 <html lang="fr">
 <head>

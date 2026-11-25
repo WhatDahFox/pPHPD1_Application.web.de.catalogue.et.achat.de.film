@@ -12,20 +12,43 @@ if (empty($_SESSION["csrf_token"])) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Vérification du jeton CSRF
-    $csrf_token = $_POST["csrf_token"] ?? "";
+   $csrf_token = $_POST["csrf_token"] ?? "";
 
-    if (
-        empty($csrf_token) ||
-        !hash_equals($_SESSION["csrf_token"], $csrf_token)
-    ) {
+if (
+    !is_string($csrf_token) ||
+    $csrf_token === "" ||
+    empty($_SESSION["csrf_token"]) ||
+    !hash_equals($_SESSION["csrf_token"], $csrf_token)
+) {
         $message = "Formulaire invalide. Veuillez réessayer.";
 
     } else {
 
-        $nom = trim($_POST["nom"] ?? "");
-        $email = trim($_POST["email"] ?? "");
-        $password = $_POST["password"] ?? "";
-        $confirmation = $_POST["confirmation"] ?? "";
+       $nom = $_POST["nom"] ?? "";
+$email = $_POST["email"] ?? "";
+$password = $_POST["password"] ?? "";
+$confirmation = $_POST["confirmation"] ?? "";
+
+// Vérifier que toutes les données reçues sont des chaînes
+if (
+    !is_string($nom) ||
+    !is_string($email) ||
+    !is_string($password) ||
+    !is_string($confirmation)
+) {
+    $message = "Les données envoyées sont invalides.";
+} else {
+    $nom = trim($nom);
+    $email = trim($email);
+    // Limiter la taille des informations saisies
+    if (
+    strlen($nom) > 100 ||
+    strlen($email) > 254 ||
+    strlen($password) > 4096 ||
+    strlen($confirmation) > 4096
+    ) {
+    $message = "Certaines informations sont trop longues.";
+    } else {
 
         if (
             $nom === "" ||
@@ -85,6 +108,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             }
         }
     }
+}
+}
 }
 ?>
 

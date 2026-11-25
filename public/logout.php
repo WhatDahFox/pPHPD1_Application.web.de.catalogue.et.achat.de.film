@@ -14,7 +14,8 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 $csrf_token = $_POST["csrf_token"] ?? "";
 
 if (
-    empty($csrf_token) ||
+    !is_string($csrf_token) ||
+    $csrf_token === "" ||
     empty($_SESSION["csrf_token"]) ||
     !hash_equals($_SESSION["csrf_token"], $csrf_token)
 ) {
@@ -36,7 +37,8 @@ if (ini_get("session.use_cookies")) {
         $params["path"],
         $params["domain"],
         $params["secure"],
-        $params["httponly"]
+        $params["httponly"],
+        $params["samesite"] ?? ""
     );
 }
 
