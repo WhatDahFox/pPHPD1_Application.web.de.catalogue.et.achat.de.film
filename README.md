@@ -87,3 +87,13 @@ Les mesures de sécurité suivantes ont été mises en place :
 * **Données :** validation des informations transmises par les utilisateurs côté serveur.
 * **Connexion SQL :** identifiants stockés dans un fichier `.env` exclu du suivi Git et droits MySQL limités.
 * **Commandes :** utilisation de transactions SQL pour garantir la cohérence des données lors des achats.
+
+## 5. Dépôt GitHub
+
+Le code source du projet ainsi que l'historique des commits sont
+disponibles sur notre dépôt GitHub :
+
+https://github.com/WhatDahFox/pPHPD1_Application.web.de.catalogue.et.achat.de.film
+
+Actuellement privé, le dépôt sera rendu public à compter du
+26 novembre 2026.
