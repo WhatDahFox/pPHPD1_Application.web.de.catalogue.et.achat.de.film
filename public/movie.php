@@ -128,7 +128,7 @@
                     <div class="donnees_film">
                         <p>
                             <strong> Année de sortie : </strong>
-                            <span> <?php echo $ficheFilm["annee_de_sortie"] ?> </span>
+                            <span> <?php echo (int) $ficheFilm["annee_de_sortie"] ?> </span>
                         </p>
                         <p>
                             <strong> Catégorie : </strong>
@@ -138,8 +138,8 @@
                         </p>
                         <p>
                             <strong> Réalisateur : </strong>
-                            <a class="lien_realisateur" href="director.php?id=<?php echo $ficheFilm["id_realisateur"] ?>">
-                                <?php echo htmlspecialchars($realisateurFilm["prenom"] . " " . $realisateurFilm["nom"]) ?>
+                            <a class="lien_realisateur" href="director.php?id=<?php echo (int) $ficheFilm["id_realisateur"] ?>">
+                                <?php echo htmlspecialchars($realisateurFilm["prenom"] . " " . $realisateurFilm["nom"], ENT_QUOTES, 'UTF-8') ?>
                             </a>
                         </p>
                         <p>

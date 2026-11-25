@@ -93,12 +93,12 @@
                             alt="affiche du film <?php echo htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>"
                         >
                         <div class="contenu_carte_film">
-                            <h3 class="titre_film"> <?php echo htmlspecialchars($film["titre"]) ?> </h3>
-                            <p class="description_film"> <?php echo htmlspecialchars($film["resume"]) ?> </p>
+                            <h3 class="titre_film"> <?php echo htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?> </h3>
+                            <p class="description_film"> <?php echo htmlspecialchars($film["resume"], ENT_QUOTES, 'UTF-8') ?> </p>
                             <p class="prix_film"> <?php echo number_format((float) $film["prix"], 2, ",", " ") ?> € </p>
                             <a
                                     class="lien_details_film"
-                                    href="movie.php?id=<?php echo $film["id_film"] ?>"
+                                    href="movie.php?id=<?php echo (int) $film["id_film"] ?>"
                             >
                                 Voir les détails du film
                             </a>
