@@ -187,6 +187,38 @@
                 // Démarrage de la transaction
                 $pdo->beginTransaction();
 
+                // Récupération et verrouillage des films du panier
+                $sql = "SELECT film.id_film, film.prix, contient.quantite
+                            FROM contient
+                            INNER JOIN film ON contient.id_film = film.id_film
+                            WHERE contient.id_panier = ?
+                            FOR UPDATE";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idPanier]);
+
+                $filmsCommande = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+                if (empty($filmsCommande)) {
+                    throw new Exception("Le panier est vide.");
+                }
+
+                // Vérification des quantités et des prix
+                foreach ($filmsCommande as $film) {
+                    $quantite = (int) $film["quantite"];
+                    $prix = (float) $film["prix"];
+
+                    if (
+                            $quantite < 1 ||
+                            $quantite > 127 ||
+                            !is_numeric($film["prix"]) ||
+                            !is_finite($prix) ||
+                            $prix < 0
+                    ) {
+                        throw new Exception("Informations du panier invalides.");
+                    }
+                }
+
                 // Création de la commande
                 $sql = "INSERT INTO commande (date_commande, id_utilisateur)
                         VALUES (NOW(), ?)";
@@ -203,7 +235,7 @@
 
                 $requete = $pdo->prepare($sql);
 
-                foreach ($filmsPanier as $film) {
+                foreach ($filmsCommande as $film) {
 
                     $requete->execute([
                             $film["id_film"],
@@ -226,7 +258,7 @@
                 header("Location: cart.php?achat=ok");
                 exit();
 
-            } catch (PDOException $e) {
+            } catch (Throwable $e) {
 
                 // Annulation de l'ensemble de la transaction
                 if ($pdo->inTransaction()) {
