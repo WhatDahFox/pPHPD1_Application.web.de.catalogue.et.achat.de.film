@@ -15,8 +15,16 @@ if (empty($_SESSION["csrf_token"])) {
 $csrfToken = $_SESSION["csrf_token"];
 
 // Récupération de la catégorie sélectionnée
-$categorie = trim($_GET["categorie"] ?? "");
+$categorie = $_GET["categorie"] ?? "";
 
+if (!is_string($categorie)) {
+    $categorie = "";
+}
+
+$categorie = trim($categorie);
+
+// Limitation de la longueur de la catégorie
+$categorie = mb_substr($categorie, 0, 100, "UTF-8");
 $categories = [];
 $resultats = [];
 

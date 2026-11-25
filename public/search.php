@@ -9,8 +9,15 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Récupération du terme de recherche
-$recherche = trim($_GET['recherche'] ?? '');
+
+// Récupération et validation du terme de recherche
+$recherche = $_GET['recherche'] ?? '';
+
+if (!is_string($recherche)) {
+    $recherche = '';
+}
+
+$recherche = mb_substr(trim($recherche), 0, 100, 'UTF-8');
 $resultats = [];
 
 if ($recherche !== '') {
