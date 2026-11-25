@@ -212,7 +212,9 @@
         <section class="section_page section_mdp">
             <h2 class="titre_section"> Modifier mon mot de passe </h2>
             <?php if ($message !== ""): ?>
-                <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
+                <p class="<?= $messageType ?>">
+                    <?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?>
+                </p>
             <?php endif; ?>
             <form class="formulaire_mdp"
                   action="profile.php"

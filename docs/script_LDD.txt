@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS realisateur(
    date_de_naissance DATE,
    nationalite VARCHAR(50) ,
    biographie TEXT,
+   portrait VARCHAR(500),
    PRIMARY KEY(id_realisateur)
 );
 

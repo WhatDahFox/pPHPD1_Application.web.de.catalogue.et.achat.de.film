@@ -96,6 +96,30 @@
         exit();
     }
 
+    // Modification de la quantité d'un film
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["modifier_quantite"])) {
+
+        $idFilm = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
+        $quantite = filter_input(INPUT_POST, "quantite", FILTER_VALIDATE_INT);
+
+        if ($idFilm > 0 && $quantite >= 1 && $quantite <= 127) {
+
+            try {
+                $sql = "UPDATE contient SET quantite = ?
+                        WHERE id_film = ? AND id_panier = ?";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$quantite, $idFilm, $idPanier]);
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+            }
+        }
+
+        header("Location: cart.php");
+        exit();
+    }
+
     // Suppression d'un film du panier
     if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["supprimer"])) {
 
@@ -333,15 +357,28 @@
                                     Prix unitaire :
                                     <?= number_format((float) $film["prix"], 2, ",", " ") ?> €
                                 </p>
-                                <label for="quantite_film_<?= (int) $film["id_film"] ?>"> Quantité : </label>
-                                <input
-                                        class="quantite_panier"
-                                        id="quantite_film_<?= (int) $film["id_film"] ?>"
-                                        type="number"
-                                        value="<?= (int) $film["quantite"] ?>"
-                                        min="1"
-                                        disabled
-                                >
+                                <form action="cart.php" method="post">
+                                    <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                                    >
+                                    <input type="hidden" name="id" value="<?= (int) $film["id_film"] ?>">
+                                    <input type="hidden" name="modifier_quantite" value="1">
+
+                                    <label for="quantite_film_<?= (int) $film["id_film"] ?>"> Quantité : </label>
+                                    <input
+                                            class="quantite_panier"
+                                            id="quantite_film_<?= (int) $film["id_film"] ?>"
+                                            name="quantite"
+                                            type="number"
+                                            value="<?= (int) $film["quantite"] ?>"
+                                            min="1"
+                                            max="127"
+                                            required
+                                            onchange="this.form.requestSubmit()"
+                                    >
+                                </form>
                             </div>
                             <div class="actions_panier">
                                 <p class="sous_total_panier">

@@ -20,6 +20,11 @@
     background-color: var(--fond_carte);
 }
 
+.section_panier > form {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
 .affiche_panier {
     width: 120px;
     aspect-ratio: 2 / 3;
