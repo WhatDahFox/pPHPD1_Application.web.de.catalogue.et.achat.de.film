@@ -1,10 +1,31 @@
 <?php
 
+    // Démarrage de la session PHP
+    session_start();
+
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Initialisation du message de validation
     $message = "";
 
     // Traitement du formulaire
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        // Vérification du jeton CSRF
+        $csrf_token = $_POST["csrf_token"] ?? "";
+
+        if (
+                !is_string($csrf_token) ||
+                $csrf_token === "" ||
+                empty($_SESSION["csrf_token"]) ||
+                !hash_equals($_SESSION["csrf_token"], $csrf_token)
+        ) {
+            http_response_code(403);
+            exit("Requête invalide.");
+        }
 
         // Récupération des données
         $nom = $_POST["nom"] ?? "";
@@ -73,6 +94,9 @@
                     $requete = $pdo->prepare($sql);
                     $requete->execute([$nom, $email, $hash]);
 
+                    // Renouvellement du jeton CSRF
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+
                     header("Location: login.php");
                     exit();
                 }
@@ -114,6 +138,11 @@
                 action="register.php"
                 method="post"
             >
+                <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
                 <h2> Créer un compte </h2>
                 <?php if ($message !== ""): ?>
                     <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>

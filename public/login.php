@@ -3,6 +3,11 @@
     // Démarrage de la session PHP
     session_start();
 
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Redirection si l'utilisateur est déjà connecté
     if (isset($_SESSION["utilisateur"])) {
         header("Location: profile.php");
@@ -14,6 +19,19 @@
 
     // Traitement du formulaire de connexion
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        // Vérification du jeton CSRF
+        $csrf_token = $_POST["csrf_token"] ?? "";
+
+        if (
+                !is_string($csrf_token) ||
+                $csrf_token === "" ||
+                empty($_SESSION["csrf_token"]) ||
+                !hash_equals($_SESSION["csrf_token"], $csrf_token)
+        ) {
+            http_response_code(403);
+            exit("Requête invalide.");
+        }
 
         $email = $_POST["email"] ?? "";
         $password = $_POST["password"] ?? "";
@@ -53,6 +71,9 @@
                 if ($utilisateur && password_verify($password, $utilisateur["mdp"])) {
 
                     session_regenerate_id(true);
+
+                    // Renouvellement du jeton CSRF
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
 
                     $_SESSION["utilisateur"] = [
                             "id_utilisateur" => $utilisateur["id_utilisateur"],
@@ -100,6 +121,11 @@
 
         <section class="section_page section_connexion">
             <form class="formulaire_connexion" action="login.php" method="post">
+                <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
                 <h2> Se connecter </h2>
                 <?php if ($message !== ""): ?>
                     <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>

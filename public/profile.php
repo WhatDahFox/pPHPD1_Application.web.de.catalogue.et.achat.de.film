@@ -3,6 +3,11 @@
     // Démarrage de la session PHP
     session_start();
 
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Vérification de la connexion
     if (!isset($_SESSION["utilisateur"]["id_utilisateur"])) {
         header("Location: login.php");
@@ -47,6 +52,19 @@
 
     // Modification du mot de passe
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        // Vérification du jeton CSRF
+        $csrf_token = $_POST["csrf_token"] ?? "";
+
+        if (
+                !is_string($csrf_token) ||
+                $csrf_token === "" ||
+                empty($_SESSION["csrf_token"]) ||
+                !hash_equals($_SESSION["csrf_token"], $csrf_token)
+        ) {
+            http_response_code(403);
+            exit("Requête invalide.");
+        }
 
         $ancienPassword = $_POST["mdp_actuel"] ?? "";
         $nouveauPassword = $_POST["nouveau_mdp"] ?? "";
@@ -97,6 +115,9 @@
 
                     $message = "Votre mot de passe a été modifié.";
                     $messageType = "succes";
+
+                    // Renouvellement du jeton CSRF
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
                 }
 
             } catch (PDOException $e) {
@@ -196,6 +217,11 @@
             <form class="formulaire_mdp"
                   action="profile.php"
                   method="post">
+                <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
                 <div class="champ_profil">
                     <label for="mdp_actuel"> Mot de passe actuel </label>
                     <input
@@ -245,6 +271,11 @@
             <h2 class="titre_section"> Déconnexion </h2>
 
             <form action="logout.php" method="post">
+                <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
                 <button
                     class="bouton_deconnexion"
                     type="submit"
