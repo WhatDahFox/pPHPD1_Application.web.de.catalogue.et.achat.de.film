@@ -1,188 +1,257 @@
 
 <?php
+
 session_start();
 
-require_once __DIR__ . '/../config/database.php';
-
 // Vérification de la connexion
-if (!isset($_SESSION["utilisateur"])) {
+if (!isset($_SESSION["utilisateur"]["id_utilisateur"])) {
     header("Location: login.php");
     exit();
 }
 
-// Initialisation du panier
-if (!isset($_SESSION["panier"]) || !is_array($_SESSION["panier"])) {
-    $_SESSION["panier"] = [];
+// Création du jeton CSRF
+if (empty($_SESSION["csrf_token"])) {
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
 }
 
-// Gestion des actions
+$csrfToken = $_SESSION["csrf_token"];
+
+// Connexion à la base de données
+require_once __DIR__ . "/../config/database.php";
+
+$idUtilisateur = (int) $_SESSION["utilisateur"]["id_utilisateur"];
+
+// Récupération ou création du panier utilisateur
+try {
+    $requete = $pdo->prepare(
+        "SELECT id_panier FROM panier WHERE id_utilisateur = ?"
+    );
+    $requete->execute([$idUtilisateur]);
+
+    $panier = $requete->fetch(PDO::FETCH_ASSOC);
+
+    if ($panier) {
+        $idPanier = (int) $panier["id_panier"];
+    } else {
+        $requete = $pdo->prepare(
+            "INSERT INTO panier (id_utilisateur) VALUES (?)"
+        );
+        $requete->execute([$idUtilisateur]);
+
+        $idPanier = (int) $pdo->lastInsertId();
+    }
+
+} catch (PDOException $e) {
+    error_log($e->getMessage());
+    http_response_code(500);
+    exit("Impossible de récupérer le panier.");
+}
+
+// Traitement des actions du panier
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    // Validation de la commande
-    if (isset($_POST["valider_commande"])) {
+    // Vérification du jeton CSRF
+    $tokenRecu = $_POST["csrf_token"] ?? "";
 
-        if (empty($_SESSION["panier"])) {
-            $_SESSION["message_panier"] = "Votre panier est vide.";
-            header("Location: cart.php");
-            exit();
-        }
+    if (
+        empty($tokenRecu) ||
+        !hash_equals($_SESSION["csrf_token"], $tokenRecu)
+    ) {
+        http_response_code(403);
+        exit("Requête invalide.");
+    }
 
-        try {
-            // Récupération des films et de leurs prix actuels
-            $ids = array_keys($_SESSION["panier"]);
-            $placeholders = implode(",", array_fill(0, count($ids), "?"));
+    // Ajout d'un film au panier
+    if (isset($_POST["ajouter"])) {
 
-            $requete = $pdo->prepare(
-                "SELECT id_film, prix
-                 FROM film
-                 WHERE id_film IN ($placeholders)"
-            );
+        $idFilm = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
 
-            $requete->execute($ids);
-            $films = $requete->fetchAll(PDO::FETCH_ASSOC);
+        if ($idFilm !== false && $idFilm !== null && $idFilm > 0) {
+            try {
+                $requete = $pdo->prepare(
+                    "SELECT id_film FROM film WHERE id_film = ?"
+                );
+                $requete->execute([$idFilm]);
 
-            if (count($films) !== count($ids)) {
-                throw new Exception("Un film du panier n'existe plus.");
-            }
-
-            // Début de la transaction
-            $pdo->beginTransaction();
-
-            // Création de la commande
-            $requeteCommande = $pdo->prepare(
-                "INSERT INTO commande (date_commande, id_utilisateur)
-                 VALUES (NOW(), ?)"
-            );
-
-	$requeteCommande->execute([
-   	 $_SESSION["utilisateur"]["id_utilisateur"]
-		
-		]);
-           
-            $idCommande = $pdo->lastInsertId();
-
-            // Préparation de l'enregistrement des films achetés
-            $requeteContenant = $pdo->prepare(
-                "INSERT INTO contenant
-                 (id_film, id_commande, quantite, prix_achat)
-                 VALUES (?, ?, ?, ?)"
-            );
-
-            foreach ($films as $film) {
-
-                $idFilm = (int) $film["id_film"];
-                $quantite = (int) ($_SESSION["panier"][$idFilm] ?? 0);
-                $prix = (float) $film["prix"];
-
-                if ($quantite < 1 || $quantite > 127 || $prix < 0) {
-                    throw new Exception("Les informations du panier sont invalides.");
+                if ($requete->fetch()) {
+                    $requete = $pdo->prepare(
+                        "INSERT INTO contient (id_film, id_panier, quantite)
+                         VALUES (?, ?, 1)
+                         ON DUPLICATE KEY UPDATE
+                         quantite = LEAST(quantite + 1, 127)"
+                    );
+                    $requete->execute([$idFilm, $idPanier]);
                 }
 
-                $requeteContenant->execute([
-                    $idFilm,
-                    $idCommande,
-                    $quantite,
-                    $prix
-                ]);
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
             }
-
-            // Validation définitive
-            $pdo->commit();
-
-            // Vidage du panier
-            $_SESSION["panier"] = [];
-
-            $_SESSION["message_panier"] =
-                "Votre commande a été enregistrée avec succès !";
-
-        } catch (Throwable $e) {
-
-            // Annulation si une erreur survient
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-
-            error_log($e->getMessage());
-
-            $_SESSION["message_panier"] =
-                "Une erreur est survenue lors de la validation de votre commande.";
         }
 
         header("Location: cart.php");
         exit();
     }
 
-    // Ajout ou suppression d'un film
-    $id = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
+    // Suppression d'un film du panier
+    if (isset($_POST["supprimer"])) {
 
-    if ($id !== false && $id !== null && $id > 0) {
+        $idFilm = filter_input(INPUT_POST, "id", FILTER_VALIDATE_INT);
 
-        // Ajouter un film
-        if (isset($_POST["ajouter"])) {
+        if ($idFilm !== false && $idFilm !== null && $idFilm > 0) {
+            try {
+                $requete = $pdo->prepare(
+                    "DELETE FROM contient
+                     WHERE id_film = ? AND id_panier = ?"
+                );
+                $requete->execute([$idFilm, $idPanier]);
 
-            $requete = $pdo->prepare(
-                "SELECT id_film FROM film WHERE id_film = ?"
-            );
-
-            $requete->execute([$id]);
-
-            if ($requete->fetch()) {
-
-                $quantiteActuelle = (int) ($_SESSION["panier"][$id] ?? 0);
-
-                if ($quantiteActuelle < 127) {
-                    $_SESSION["panier"][$id] = $quantiteActuelle + 1;
-                }
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
             }
         }
 
-        // Supprimer un film
-        if (isset($_POST["supprimer"])) {
-            unset($_SESSION["panier"][$id]);
-        }
+        header("Location: cart.php");
+        exit();
     }
 
-    header("Location: cart.php");
-    exit();
+    // Vidage complet du panier
+    if (isset($_POST["vider"])) {
+        try {
+            $requete = $pdo->prepare(
+                "DELETE FROM contient WHERE id_panier = ?"
+            );
+            $requete->execute([$idPanier]);
+
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+        }
+
+        header("Location: cart.php");
+        exit();
+    }
+
+    // Validation de la commande
+    if (isset($_POST["valider"])) {
+
+        try {
+            $pdo->beginTransaction();
+
+            // Récupération des films et de leurs prix
+            $requete = $pdo->prepare(
+                "SELECT film.id_film, film.prix, contient.quantite
+                 FROM contient
+                 INNER JOIN film ON contient.id_film = film.id_film
+                 WHERE contient.id_panier = ?
+                 FOR UPDATE"
+            );
+            $requete->execute([$idPanier]);
+
+            $filmsCommande = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($filmsCommande)) {
+                throw new Exception("Le panier est vide.");
+            }
+
+            // Vérification des quantités et des prix
+            foreach ($filmsCommande as $film) {
+                $quantite = (int) $film["quantite"];
+                $prix = (float) $film["prix"];
+
+                if ($quantite < 1 || $quantite > 127 || $prix < 0) {
+                    throw new Exception("Informations du panier invalides.");
+                }
+            }
+
+            // Création de la commande
+            $requete = $pdo->prepare(
+                "INSERT INTO commande (date_commande, id_utilisateur)
+                 VALUES (NOW(), ?)"
+            );
+            $requete->execute([$idUtilisateur]);
+
+            $idCommande = $pdo->lastInsertId();
+
+            // Enregistrement des films achetés
+            $requete = $pdo->prepare(
+                "INSERT INTO contenant
+                 (id_film, id_commande, quantite, prix_achat)
+                 VALUES (?, ?, ?, ?)"
+            );
+
+            foreach ($filmsCommande as $film) {
+                $requete->execute([
+                    (int) $film["id_film"],
+                    $idCommande,
+                    (int) $film["quantite"],
+                    $film["prix"]
+                ]);
+            }
+
+            // Vidage du panier après l'achat
+            $requete = $pdo->prepare(
+                "DELETE FROM contient WHERE id_panier = ?"
+            );
+            $requete->execute([$idPanier]);
+
+            // Confirmation de la transaction
+            $pdo->commit();
+
+            header("Location: cart.php?achat=ok");
+            exit();
+
+        } catch (Throwable $e) {
+
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            error_log($e->getMessage());
+
+            $messageValidation = "Une erreur est survenue lors de l'achat.";
+        }
+    }
 }
 
-// Récupération des messages
-$message = $_SESSION["message_panier"] ?? "";
-unset($_SESSION["message_panier"]);
-
-// Récupération des films du panier
+// Récupération des films présents dans le panier
 $filmsPanier = [];
-$total = 0;
-$nombreArticles = 0;
+$erreurChargementPanier = false;
 
-if (!empty($_SESSION["panier"])) {
-
-    $ids = array_keys($_SESSION["panier"]);
-    $placeholders = implode(",", array_fill(0, count($ids), "?"));
-
+try {
     $requete = $pdo->prepare(
-        "SELECT id_film, titre, affiche, prix
-         FROM film
-         WHERE id_film IN ($placeholders)"
+        "SELECT film.id_film, film.titre, film.affiche,
+                film.prix, contient.quantite
+         FROM contient
+         INNER JOIN film ON contient.id_film = film.id_film
+         WHERE contient.id_panier = ?"
     );
+    $requete->execute([$idPanier]);
 
-    $requete->execute($ids);
+    $filmsPanier = $requete->fetchAll(PDO::FETCH_ASSOC);
 
-    while ($film = $requete->fetch(PDO::FETCH_ASSOC)) {
-        $filmsPanier[$film["id_film"]] = $film;
-    }
-
-    foreach ($_SESSION["panier"] as $id => $quantite) {
-
-        if (isset($filmsPanier[$id])) {
-
-            $quantite = (int) $quantite;
-
-            $total += (float) $filmsPanier[$id]["prix"] * $quantite;
-            $nombreArticles += $quantite;
-        }
-    }
+} catch (PDOException $e) {
+    error_log($e->getMessage());
+    $erreurChargementPanier = true;
 }
+
+// Calcul du nombre d'articles et du total
+$nombreArticles = 0;
+$totalPanier = 0;
+
+foreach ($filmsPanier as $film) {
+    $quantite = (int) $film["quantite"];
+    $prix = (float) $film["prix"];
+
+    $nombreArticles += $quantite;
+    $totalPanier += $prix * $quantite;
+}
+
+// Messages de validation
+$messageValidation = $messageValidation ?? "";
+
+if (isset($_GET["achat"]) && $_GET["achat"] === "ok") {
+    $messageValidation = "Votre achat a été enregistré avec succès.";
+}
+
 ?>
 
 <!doctype html>
@@ -198,15 +267,17 @@ if (!empty($_SESSION["panier"])) {
 
 <body class="conteneur">
 
-<header class="bloc header"></header>
+<header class="bloc header">
+    <!-- Insertion header en JS -->
+</header>
 
 <main>
 
     <h1>Mon panier</h1>
 
-    <?php if (!empty($message)): ?>
+    <?php if ($messageValidation !== ""): ?>
         <p class="message_panier">
-            <?= htmlspecialchars($message) ?>
+            <?= htmlspecialchars($messageValidation, ENT_QUOTES, "UTF-8") ?>
         </p>
     <?php endif; ?>
 
@@ -216,89 +287,146 @@ if (!empty($_SESSION["panier"])) {
 
         <div class="liste_panier">
 
-            <?php if (empty($filmsPanier)): ?>
+            <?php if ($erreurChargementPanier): ?>
+
+                <p>Impossible de charger votre panier. Veuillez réessayer ultérieurement.</p>
+
+            <?php elseif (empty($filmsPanier)): ?>
 
                 <p>Votre panier est vide.</p>
+                <p><a href="index.php">Retour au catalogue</a></p>
 
             <?php else: ?>
 
-                <?php foreach ($_SESSION["panier"] as $id => $quantite): ?>
+                <?php foreach ($filmsPanier as $film): ?>
 
-                    <?php if (isset($filmsPanier[$id])):
+                    <article class="ligne_panier">
 
-                        $film = $filmsPanier[$id];
-                        $quantite = (int) $quantite;
-                        $sousTotal = $film["prix"] * $quantite;
+                        <img
+                            class="affiche_panier"
+                            src="<?= htmlspecialchars(
+                                !empty($film["affiche"])
+                                    ? $film["affiche"]
+                                    : "./images/affiche_indisponible.png",
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>"
+                            alt="Affiche de <?= htmlspecialchars(
+                                $film["titre"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>"
+                        >
 
-                        $affiche = !empty($film["affiche"])
-                            ? $film["affiche"]
-                            : "./images/affiche_indisponible.png";
-                    ?>
+                        <div class="informations_panier">
 
-                        <article class="ligne_panier">
+                            <h3 class="titre_film">
+                                <?= htmlspecialchars(
+                                    $film["titre"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>
+                            </h3>
 
-                            <img
-                                class="affiche_panier"
-                                src="<?= htmlspecialchars($affiche) ?>"
-                                alt="Affiche du film"
+                            <a href="movie.php?id=<?= (int) $film["id_film"] ?>">
+                                Voir les détails du film
+                            </a>
+
+                            <p>
+                                Prix unitaire :
+                                <?= number_format(
+                                    (float) $film["prix"],
+                                    2,
+                                    ",",
+                                    " "
+                                ) ?> €
+                            </p>
+
+                            <label for="quantite_film_<?= (int) $film["id_film"] ?>">
+                                Quantité :
+                            </label>
+
+                            <input
+                                class="quantite_panier"
+                                id="quantite_film_<?= (int) $film["id_film"] ?>"
+                                type="number"
+                                value="<?= (int) $film["quantite"] ?>"
+                                min="1"
+                                disabled
                             >
 
-                            <div class="informations_panier">
+                        </div>
 
-                                <h3 class="titre_film">
-                                    <?= htmlspecialchars($film["titre"]) ?>
-                                </h3>
+                        <div class="actions_panier">
 
-                                <a href="movie.php?id=<?= (int) $id ?>">
-                                    Voir les détails du film
-                                </a>
+                            <p class="sous_total_panier">
+                                <?= number_format(
+                                    (float) $film["prix"] * (int) $film["quantite"],
+                                    2,
+                                    ",",
+                                    " "
+                                ) ?> €
+                            </p>
 
-                                <p>
-                                    Prix unitaire :
-                                    <?= number_format($film["prix"], 2, ",", " ") ?> €
-                                </p>
+                            <form action="cart.php" method="post">
 
-                                <p>
-                                    Quantité : <?= $quantite ?>
-                                </p>
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= htmlspecialchars(
+                                        $csrfToken,
+                                        ENT_QUOTES,
+                                        "UTF-8"
+                                    ) ?>"
+                                >
 
-                            </div>
+                                <input
+                                    type="hidden"
+                                    name="id"
+                                    value="<?= (int) $film["id_film"] ?>"
+                                >
 
-                            <div class="actions_panier">
+                                <button
+                                    class="bouton_supprimer"
+                                    type="submit"
+                                    name="supprimer"
+                                >
+                                    Supprimer
+                                </button>
 
-                                <p class="sous_total_panier">
-                                    <?= number_format($sousTotal, 2, ",", " ") ?> €
-                                </p>
+                            </form>
 
-                                <form method="POST" action="cart.php">
+                        </div>
 
-                                    <input
-                                        type="hidden"
-                                        name="id"
-                                        value="<?= (int) $id ?>"
-                                    >
-
-                                    <button
-                                        class="bouton_supprimer"
-                                        type="submit"
-                                        name="supprimer"
-                                    >
-                                        Supprimer
-                                    </button>
-
-                                </form>
-
-                            </div>
-
-                        </article>
-
-                    <?php endif; ?>
+                    </article>
 
                 <?php endforeach; ?>
 
             <?php endif; ?>
 
         </div>
+
+        <?php if (!empty($filmsPanier)): ?>
+
+            <form action="cart.php" method="post">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars(
+                        $csrfToken,
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
+                >
+
+                <button class="bouton_supprimer" type="submit" name="vider">
+                    Vider le panier
+                </button>
+
+            </form>
+
+        <?php endif; ?>
 
     </section>
 
@@ -316,23 +444,36 @@ if (!empty($_SESSION["panier"])) {
             <p class="total_panier">
                 <strong>Total :</strong>
                 <span>
-                    <?= number_format($total, 2, ",", " ") ?> €
+                    <?= number_format($totalPanier, 2, ",", " ") ?> €
                 </span>
             </p>
 
-        </div>
+            <form action="cart.php" method="post">
 
-        <?php if (!empty($filmsPanier)): ?>
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars(
+                        $csrfToken,
+                        ENT_QUOTES,
+                        "UTF-8"
+                    ) ?>"
+                >
 
-            <form method="POST" action="cart.php">
-
-                <button type="submit" name="valider_commande">
-                    Valider ma commande
+                <button
+                    class="bouton_valider"
+                    type="submit"
+                    name="valider"
+                    <?= (empty($filmsPanier) || $erreurChargementPanier)
+                        ? "disabled"
+                        : "" ?>
+                >
+                    Valider le panier
                 </button>
 
             </form>
 
-        <?php endif; ?>
+        </div>
 
     </section>
 
@@ -340,7 +481,9 @@ if (!empty($_SESSION["panier"])) {
 
 </main>
 
-<footer class="bloc footer"></footer>
+<footer class="bloc footer">
+    <!-- Insertion footer en JS -->
+</footer>
 
 <script type="module" src="./js/layout.js"></script>
 

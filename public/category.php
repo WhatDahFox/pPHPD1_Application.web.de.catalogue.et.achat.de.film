@@ -1,25 +1,39 @@
 
 <?php
-require_once __DIR__ . '/../config/database.php';
 
-$categorie = trim($_GET['categorie'] ?? '');
+require_once __DIR__ . "/../config/database.php";
+
+// Récupération du jeton CSRF pour les formulaires
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+if (empty($_SESSION["csrf_token"])) {
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+}
+
+$csrfToken = $_SESSION["csrf_token"];
+
+// Récupération de la catégorie sélectionnée
+$categorie = trim($_GET["categorie"] ?? "");
+
 $categories = [];
 $resultats = [];
 
 // Récupération de toutes les catégories
-$requeteCategories = $pdo->query("
-    SELECT id_categorie, nom
-    FROM categorie
-    ORDER BY nom
-");
+$requeteCategories = $pdo->query(
+    "SELECT id_categorie, nom
+     FROM categorie
+     ORDER BY nom"
+);
 
 $categories = $requeteCategories->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupération des films de la catégorie sélectionnée
-if ($categorie !== '') {
+if ($categorie !== "") {
 
-    $requeteFilms = $pdo->prepare("
-        SELECT
+    $requeteFilms = $pdo->prepare(
+        "SELECT
             f.id_film,
             f.titre,
             f.affiche,
@@ -28,20 +42,21 @@ if ($categorie !== '') {
             f.resume,
             CONCAT(r.prenom, ' ', r.nom) AS realisateur,
             c.nom AS categorie
-        FROM film f
-        INNER JOIN fait_partie_de fp
+         FROM film f
+         INNER JOIN fait_partie_de fp
             ON f.id_film = fp.id_film
-        INNER JOIN categorie c
+         INNER JOIN categorie c
             ON fp.id_categorie = c.id_categorie
-        LEFT JOIN realisateur r
+         LEFT JOIN realisateur r
             ON f.id_realisateur = r.id_realisateur
-        WHERE c.nom = ?
-        ORDER BY f.titre
-    ");
+         WHERE c.nom = ?
+         ORDER BY f.annee_de_sortie DESC, f.id_film DESC"
+    );
 
     $requeteFilms->execute([$categorie]);
     $resultats = $requeteFilms->fetchAll(PDO::FETCH_ASSOC);
 }
+
 ?>
 
 <!doctype html>
@@ -57,7 +72,9 @@ if ($categorie !== '') {
 
 <body class="conteneur">
 
-<header class="bloc header"></header>
+<header class="bloc header">
+    <!-- Insertion header en JS -->
+</header>
 
 <main>
 
@@ -69,9 +86,13 @@ if ($categorie !== '') {
 
             <a
                 class="lien_categorie"
-                href="category.php?categorie=<?= urlencode($nomCategorie['nom']) ?>"
+                href="category.php?categorie=<?= urlencode($nomCategorie["nom"]) ?>"
             >
-                <?= htmlspecialchars($nomCategorie['nom']) ?>
+                <?= htmlspecialchars(
+                    $nomCategorie["nom"],
+                    ENT_QUOTES,
+                    "UTF-8"
+                ) ?>
             </a>
 
         <?php endforeach; ?>
@@ -80,7 +101,7 @@ if ($categorie !== '') {
 
     <section class="section_page section_categorie">
 
-        <?php if ($categorie === ''): ?>
+        <?php if ($categorie === ""): ?>
 
             <h2 class="titre_section">Choisissez une catégorie</h2>
 
@@ -100,7 +121,7 @@ if ($categorie !== '') {
 
             <h2 class="titre_section">
                 Films de la catégorie :
-                <?= htmlspecialchars($categorie) ?>
+                <?= htmlspecialchars($categorie, ENT_QUOTES, "UTF-8") ?>
             </h2>
 
             <div class="liste_films">
@@ -108,46 +129,75 @@ if ($categorie !== '') {
                 <?php foreach ($resultats as $film): ?>
 
                     <?php
-                    $affiche = !empty($film['affiche'])
-                        ? $film['affiche']
-                        : './images/affiche_indisponible.png';
+                    $affiche = !empty($film["affiche"])
+                        ? $film["affiche"]
+                        : "./images/affiche_indisponible.png";
 
-                    $realisateur = $film['realisateur']
-                        ?? 'Réalisateur inconnu';
+                    $realisateur = $film["realisateur"]
+                        ?? "Réalisateur inconnu";
                     ?>
 
                     <article class="carte_film">
 
                         <img
                             class="affiche_film"
-                            src="<?= htmlspecialchars($affiche) ?>"
-                            alt="Affiche de <?= htmlspecialchars($film['titre']) ?>"
+                            src="<?= htmlspecialchars(
+                                $affiche,
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>"
+                            onerror="this.onerror=null; this.src='images/affiche_indisponible.png';"
+                            alt="Affiche de <?= htmlspecialchars(
+                                $film["titre"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>"
                         >
 
                         <div class="contenu_carte_film">
 
                             <h3 class="titre_film">
-                                <?= htmlspecialchars($film['titre']) ?>
+                                <?= htmlspecialchars(
+                                    $film["titre"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>
                             </h3>
 
                             <p class="description_film">
-                                <?= htmlspecialchars((string) $film['annee_de_sortie']) ?>
+                                <?= htmlspecialchars(
+                                    (string) $film["annee_de_sortie"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>
                                 -
-                                <?= htmlspecialchars($realisateur) ?>
+                                <?= htmlspecialchars(
+                                    $realisateur,
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>
+                            </p>
+
+                            <p>
+                                <?= htmlspecialchars(
+                                    (string) $film["resume"],
+                                    ENT_QUOTES,
+                                    "UTF-8"
+                                ) ?>
                             </p>
 
                             <p class="prix_film">
                                 <?= number_format(
-                                    (float) $film['prix'],
+                                    (float) $film["prix"],
                                     2,
-                                    ',',
-                                    ' '
+                                    ",",
+                                    " "
                                 ) ?> €
                             </p>
 
                             <a
                                 class="lien_details_film"
-                                href="movie.php?id=<?= (int) $film['id_film'] ?>"
+                                href="movie.php?id=<?= (int) $film["id_film"] ?>"
                             >
                                 Voir les détails du film
                             </a>
@@ -156,8 +206,18 @@ if ($categorie !== '') {
 
                                 <input
                                     type="hidden"
+                                    name="csrf_token"
+                                    value="<?= htmlspecialchars(
+                                        $csrfToken,
+                                        ENT_QUOTES,
+                                        "UTF-8"
+                                    ) ?>"
+                                >
+
+                                <input
+                                    type="hidden"
                                     name="id"
-                                    value="<?= (int) $film['id_film'] ?>"
+                                    value="<?= (int) $film["id_film"] ?>"
                                 >
 
                                 <button
@@ -188,7 +248,9 @@ if ($categorie !== '') {
 
 </main>
 
-<footer class="bloc footer"></footer>
+<footer class="bloc footer">
+    <!-- Insertion footer en JS -->
+</footer>
 
 <script type="module" src="./js/layout.js"></script>
 

@@ -12,47 +12,81 @@ $utilisateur = $_SESSION["utilisateur"];
 $message = "";
 $messageType = "";
 
+// Création du jeton CSRF
+if (empty($_SESSION["csrf_token"])) {
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+}
+
 // Connexion à la base de données
 require_once __DIR__ . "/../config/database.php";
 
 // Modification du mot de passe
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $ancienPassword = $_POST["mdp_actuel"] ?? "";
-    $nouveauPassword = $_POST["nouveau_mdp"] ?? "";
-    $confirmation = $_POST["confirmation_mdp"] ?? "";
+    // Vérification du jeton CSRF
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    if (empty($ancienPassword) || empty($nouveauPassword) || empty($confirmation)) {
-        $message = "Veuillez remplir tous les champs.";
-    } elseif (strlen($nouveauPassword) < 8) {
-        $message = "Le nouveau mot de passe doit contenir 8 caractères minimum.";
-    } elseif ($nouveauPassword !== $confirmation) {
-        $message = "Les nouveaux mots de passe sont différents.";
+    if (
+        empty($csrf_token) ||
+        !hash_equals($_SESSION["csrf_token"], $csrf_token)
+    ) {
+        $message = "Formulaire invalide. Veuillez réessayer.";
+        $messageType = "erreur";
+
     } else {
-        try {
-            // Récupérer le mot de passe actuel
-            $sql = "SELECT mdp FROM utilisateur WHERE id_utilisateur = ?";
-            $requete = $pdo->prepare($sql);
-            $requete->execute([$utilisateur["id_utilisateur"]]);
-            $compte = $requete->fetch(PDO::FETCH_ASSOC);
 
-            if (!$compte || !password_verify($ancienPassword, $compte["mdp"])) {
-                $message = "Le mot de passe actuel est incorrect.";
-            } else {
-                // Enregistrer le nouveau mot de passe sécurisé
-                $hash = password_hash($nouveauPassword, PASSWORD_DEFAULT);
+        $ancienPassword = $_POST["mdp_actuel"] ?? "";
+        $nouveauPassword = $_POST["nouveau_mdp"] ?? "";
+        $confirmation = $_POST["confirmation_mdp"] ?? "";
 
-                $sql = "UPDATE utilisateur SET mdp = ? WHERE id_utilisateur = ?";
+        if (
+            $ancienPassword === "" ||
+            $nouveauPassword === "" ||
+            $confirmation === ""
+        ) {
+            $message = "Veuillez remplir tous les champs.";
+
+        } elseif (strlen($nouveauPassword) < 8) {
+            $message = "Le nouveau mot de passe doit contenir 8 caractères minimum.";
+
+        } elseif ($nouveauPassword !== $confirmation) {
+            $message = "Les nouveaux mots de passe sont différents.";
+
+        } else {
+            try {
+                // Récupérer le mot de passe actuel
+                $sql = "SELECT mdp FROM utilisateur WHERE id_utilisateur = ?";
                 $requete = $pdo->prepare($sql);
-                $requete->execute([$hash, $utilisateur["id_utilisateur"]]);
+                $requete->execute([$utilisateur["id_utilisateur"]]);
+                $compte = $requete->fetch(PDO::FETCH_ASSOC);
 
-                $message = "Votre mot de passe a été modifié.";
-                $messageType = "succes";
+                if (!$compte || !password_verify($ancienPassword, $compte["mdp"])) {
+                    $message = "Le mot de passe actuel est incorrect.";
+
+                } else {
+                    // Enregistrer le nouveau mot de passe sécurisé
+                    $hash = password_hash($nouveauPassword, PASSWORD_DEFAULT);
+
+                    $sql = "UPDATE utilisateur
+                            SET mdp = ?
+                            WHERE id_utilisateur = ?";
+                    $requete = $pdo->prepare($sql);
+                    $requete->execute([
+                        $hash,
+                        $utilisateur["id_utilisateur"]
+                    ]);
+
+                    $message = "Votre mot de passe a été modifié.";
+                    $messageType = "succes";
+
+                    // Renouvellement du jeton CSRF
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+                }
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+                $message = "Impossible de modifier le mot de passe.";
             }
-
-        } catch (PDOException $e) {
-            error_log($e->getMessage());
-            $message = "Impossible de modifier le mot de passe.";
         }
     }
 
@@ -62,6 +96,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 // Récupérer les films achetés
+$achats = [];
+
 try {
     $sql = "SELECT
                 f.id_film,
@@ -74,7 +110,7 @@ try {
             INNER JOIN contenant co ON c.id_commande = co.id_commande
             INNER JOIN film f ON co.id_film = f.id_film
             WHERE c.id_utilisateur = ?
-            ORDER BY c.date_commande DESC";
+            ORDER BY c.date_commande DESC, c.id_commande DESC";
 
     $requete = $pdo->prepare($sql);
     $requete->execute([$utilisateur["id_utilisateur"]]);
@@ -82,7 +118,6 @@ try {
 
 } catch (PDOException $e) {
     error_log($e->getMessage());
-    $achats = [];
     $erreurAchats = true;
 }
 ?>
@@ -113,12 +148,12 @@ try {
             <div class="contenu_profil">
                 <p>
                     <strong>Nom :</strong>
-                    <?= htmlspecialchars($utilisateur["nom"]) ?>
+                    <?= htmlspecialchars($utilisateur["nom"] ?? "", ENT_QUOTES, 'UTF-8') ?>
                 </p>
 
                 <p>
                     <strong>Adresse mail :</strong>
-                    <?= htmlspecialchars($utilisateur["email"]) ?>
+                    <?= htmlspecialchars($utilisateur["email"] ?? "", ENT_QUOTES, 'UTF-8') ?>
                 </p>
             </div>
         </section>
@@ -151,15 +186,15 @@ try {
 
                             <img
                                 class="affiche_achat"
-                                src="<?= htmlspecialchars($affiche) ?>"
-                                alt="Affiche de <?= htmlspecialchars($achat["titre"]) ?>"
+                                src="<?= htmlspecialchars($affiche, ENT_QUOTES, 'UTF-8') ?>"
+                                alt="Affiche de <?= htmlspecialchars($achat["titre"], ENT_QUOTES, 'UTF-8') ?>"
                                 onerror="this.onerror=null;this.src='./images/affiche_indisponible.png';"
                             >
 
                             <div class="informations_achat">
 
                                 <h3 class="titre_film">
-                                    <?= htmlspecialchars($achat["titre"]) ?>
+                                    <?= htmlspecialchars($achat["titre"], ENT_QUOTES, 'UTF-8') ?>
                                 </h3>
 
                                 <p>
@@ -173,7 +208,7 @@ try {
 
                                 <p>
                                     Prix payé :
-                                    <?= number_format($achat["prix_achat"] * $achat["quantite"], 2, ',', ' ') ?> €
+                                    <?= number_format((float) $achat["prix_achat"] * (int) $achat["quantite"], 2, ',', ' ') ?> €
                                 </p>
 
                                 <a href="movie.php?id=<?= (int) $achat["id_film"] ?>">
@@ -195,10 +230,16 @@ try {
             <h2 class="titre_section">Modifier mon mot de passe</h2>
 
             <?php if ($message !== ""): ?>
-                <p><?= htmlspecialchars($message) ?></p>
+                <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
             <?php endif; ?>
 
             <form class="formulaire_mdp" action="profile.php" method="post">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
 
                 <div class="champ_profil">
                     <label for="mdp_actuel">Mot de passe actuel</label>
@@ -247,9 +288,17 @@ try {
             <h2 class="titre_section">Déconnexion</h2>
 
             <form action="logout.php" method="post">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
+
                 <button class="bouton_deconnexion" type="submit">
                     Se déconnecter
                 </button>
+
             </form>
         </section>
 

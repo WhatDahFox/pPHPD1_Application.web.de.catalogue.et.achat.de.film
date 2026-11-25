@@ -1,12 +1,49 @@
+
 <?php
 
-//Démarre la session 
+// Démarrage de la session
 session_start();
 
-//Supprime les infos de connexion
-unset($_SESSION["utilisateur"]);
+// Autoriser uniquement les requêtes POST
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+    header("Location: profile.php");
+    exit();
+}
 
-//Redirige vers la page de connexion
+// Vérification du jeton CSRF
+$csrf_token = $_POST["csrf_token"] ?? "";
+
+if (
+    empty($csrf_token) ||
+    empty($_SESSION["csrf_token"]) ||
+    !hash_equals($_SESSION["csrf_token"], $csrf_token)
+) {
+    header("Location: profile.php");
+    exit();
+}
+
+// Suppression de toutes les données de session
+$_SESSION = [];
+
+// Suppression du cookie de session
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+
+    setcookie(
+        session_name(),
+        "",
+        time() - 42000,
+        $params["path"],
+        $params["domain"],
+        $params["secure"],
+        $params["httponly"]
+    );
+}
+
+// Destruction de la session
+session_destroy();
+
+// Redirection vers la connexion
 header("Location: login.php");
 exit();
 

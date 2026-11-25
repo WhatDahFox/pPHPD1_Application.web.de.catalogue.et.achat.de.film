@@ -1,7 +1,15 @@
 
 <?php
+session_start();
+
 require_once __DIR__ . '/../config/database.php';
 
+// Création du jeton CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Récupération du terme de recherche
 $recherche = trim($_GET['recherche'] ?? '');
 $resultats = [];
 
@@ -9,11 +17,13 @@ if ($recherche !== '') {
 
     $motRecherche = '%' . $recherche . '%';
 
+    // Recherche par titre, réalisateur ou catégorie
     $requete = $pdo->prepare("
         SELECT
             f.id_film,
             f.titre,
             f.affiche,
+            f.resume,
             f.annee_de_sortie,
             f.prix,
             CONCAT(r.prenom, ' ', r.nom) AS realisateur,
@@ -31,7 +41,7 @@ if ($recherche !== '') {
             OR r.prenom LIKE ?
             OR c.nom LIKE ?
         GROUP BY f.id_film
-        ORDER BY f.titre
+        ORDER BY f.annee_de_sortie DESC, f.id_film DESC
     ");
 
     $requete->execute([
@@ -64,6 +74,7 @@ if ($recherche !== '') {
 
     <h1>Recherche de films</h1>
 
+    <!-- Formulaire de recherche -->
     <section class="section_page section_recherche">
 
         <form
@@ -84,7 +95,7 @@ if ($recherche !== '') {
                     name="recherche"
                     type="search"
                     placeholder="Titre, réalisateur ou catégorie..."
-                    value="<?= htmlspecialchars($recherche) ?>"
+                    value="<?= htmlspecialchars($recherche, ENT_QUOTES, 'UTF-8') ?>"
                     required
                 >
 
@@ -98,6 +109,7 @@ if ($recherche !== '') {
 
     </section>
 
+    <!-- Résultats de la recherche -->
     <section class="section_page section_resultats">
 
         <?php if ($recherche === ''): ?>
@@ -114,14 +126,17 @@ if ($recherche !== '') {
 
             <p>
                 Aucun film trouvé pour :
-                <strong><?= htmlspecialchars($recherche) ?></strong>
+                <strong>
+                    <?= htmlspecialchars($recherche, ENT_QUOTES, 'UTF-8') ?>
+                </strong>
             </p>
 
         <?php else: ?>
 
             <h2 class="titre_section">
-                <?= count($resultats) ?> résultat(s) pour
-                « <?= htmlspecialchars($recherche) ?> »
+                <?= count($resultats) ?>
+                résultat<?= count($resultats) > 1 ? 's' : '' ?>
+                pour « <?= htmlspecialchars($recherche, ENT_QUOTES, 'UTF-8') ?> »
             </h2>
 
             <div class="liste_films">
@@ -144,22 +159,38 @@ if ($recherche !== '') {
 
                         <img
                             class="affiche_film"
-                            src="<?= htmlspecialchars($affiche) ?>"
-                            alt="Affiche de <?= htmlspecialchars($film['titre']) ?>"
+                            src="<?= htmlspecialchars($affiche, ENT_QUOTES, 'UTF-8') ?>"
+                            onerror="this.onerror=null; this.src='./images/affiche_indisponible.png';"
+                            alt="Affiche de <?= htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8') ?>"
                         >
 
                         <div class="contenu_carte_film">
 
                             <h3 class="titre_film">
-                                <?= htmlspecialchars($film['titre']) ?>
+                                <?= htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8') ?>
                             </h3>
 
                             <p class="description_film">
-                                <?= htmlspecialchars($categorie) ?>
+                                <?= htmlspecialchars($categorie, ENT_QUOTES, 'UTF-8') ?>
                                 -
-                                <?= htmlspecialchars((string) $film['annee_de_sortie']) ?>
+                                <?= htmlspecialchars(
+                                    (string) $film['annee_de_sortie'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>
                                 -
-                                <?= htmlspecialchars($realisateur) ?>
+                                <?= htmlspecialchars($realisateur, ENT_QUOTES, 'UTF-8') ?>
+                            </p>
+
+                            <p class="description_film">
+                                <?= !empty($film['resume'])
+                                    ? htmlspecialchars(
+                                        $film['resume'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    )
+                                    : 'Aucun résumé disponible.'
+                                ?>
                             </p>
 
                             <p class="prix_film">
@@ -179,6 +210,16 @@ if ($recherche !== '') {
                             </a>
 
                             <form method="POST" action="cart.php">
+
+                                <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= htmlspecialchars(
+                                        $_SESSION['csrf_token'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
+                                    ) ?>"
+                                >
 
                                 <input
                                     type="hidden"

@@ -8,50 +8,70 @@ if (isset($_SESSION["utilisateur"])) {
     exit();
 }
 
+// Création du jeton CSRF
+if (empty($_SESSION["csrf_token"])) {
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+}
+
 $message = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $email = trim($_POST["email"] ?? "");
-    $password = $_POST["password"] ?? "";
+    // Vérification du jeton CSRF
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    if (empty($email) || empty($password)) {
-        $message = "Veuillez remplir tous les champs.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Adresse email invalide.";
+    if (
+        empty($csrf_token) ||
+        !hash_equals($_SESSION["csrf_token"], $csrf_token)
+    ) {
+        $message = "Formulaire invalide. Veuillez réessayer.";
     } else {
-        try {
-            require_once __DIR__ . "/../config/database.php";
 
-            $sql = "SELECT id_utilisateur, nom, adresse_mail, mdp
-                    FROM utilisateur
-                    WHERE adresse_mail = ?";
+        $email = trim($_POST["email"] ?? "");
+        $password = $_POST["password"] ?? "";
 
-            $requete = $pdo->prepare($sql);
-            $requete->execute([$email]);
+        if (empty($email) || empty($password)) {
+            $message = "Veuillez remplir tous les champs.";
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = "Adresse email invalide.";
+        } else {
+            try {
+                require_once __DIR__ . "/../config/database.php";
 
-            $utilisateur = $requete->fetch(PDO::FETCH_ASSOC);
+                $sql = "SELECT id_utilisateur, nom, adresse_mail, mdp
+                        FROM utilisateur
+                        WHERE adresse_mail = ?";
 
-            if ($utilisateur && password_verify($password, $utilisateur["mdp"])) {
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$email]);
 
-                session_regenerate_id(true);
+                $utilisateur = $requete->fetch(PDO::FETCH_ASSOC);
 
-                $_SESSION["utilisateur"] = [
-                    "id_utilisateur" => $utilisateur["id_utilisateur"],
-                    "nom" => $utilisateur["nom"],
-                    "email" => $utilisateur["adresse_mail"]
-                ];
+                if (
+                    $utilisateur &&
+                    password_verify($password, $utilisateur["mdp"])
+                ) {
+                    session_regenerate_id(true);
 
-                header("Location: profile.php");
-                exit();
+                    $_SESSION["utilisateur"] = [
+                        "id_utilisateur" => $utilisateur["id_utilisateur"],
+                        "nom" => $utilisateur["nom"],
+                        "email" => $utilisateur["adresse_mail"]
+                    ];
 
-            } else {
-                $message = "Email ou mot de passe incorrect.";
+                    // Renouvellement du jeton après connexion
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+
+                    header("Location: profile.php");
+                    exit();
+                } else {
+                    $message = "Email ou mot de passe incorrect.";
+                }
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+                $message = "Une erreur est survenue lors de la connexion à la base de données.";
             }
-
-        } catch (PDOException $e) {
-            error_log($e->getMessage());
-            $message = "Une erreur est survenue lors de la connexion à la base de données.";
         }
     }
 }
@@ -82,8 +102,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <h2>Se connecter</h2>
 
                 <?php if ($message !== ""): ?>
-                    <p><?= htmlspecialchars($message) ?></p>
+                    <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
                 <?php endif; ?>
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
 
                 <div class="champ_connexion">
                     <label for="email_connexion">Adresse e-mail</label>

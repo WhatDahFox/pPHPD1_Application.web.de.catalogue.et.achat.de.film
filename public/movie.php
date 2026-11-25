@@ -1,15 +1,23 @@
 
 <?php
+session_start();
+
 require_once __DIR__ . '/../config/database.php';
 
-// Récupération de l'identifiant du film
+// Création du jeton CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Récupération et validation de l'identifiant du film
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 $film = null;
+$acteursFilm = [];
 
-// Recherche du film dans la base de données
 if ($id !== false && $id !== null && $id > 0) {
 
+    // Récupération des informations du film, du réalisateur et des catégories
     $requete = $pdo->prepare("
         SELECT
             f.id_film,
@@ -30,20 +38,46 @@ if ($id !== false && $id !== null && $id > 0) {
         FROM film f
         LEFT JOIN realisateur r
             ON f.id_realisateur = r.id_realisateur
-        WHERE f.id_film = ?
+        WHERE f.id_film = :id
     ");
 
-    $requete->execute([$id]);
+    $requete->execute(['id' => $id]);
     $film = $requete->fetch(PDO::FETCH_ASSOC);
+
+    // Récupération des acteurs du film
+    if ($film) {
+        $requeteActeurs = $pdo->prepare("
+            SELECT a.nom, a.prenom
+            FROM acteur a
+            INNER JOIN ont_joue_dans o
+                ON a.id_acteur = o.id_acteur
+            WHERE o.id_film = :id
+            ORDER BY a.nom, a.prenom
+        ");
+
+        $requeteActeurs->execute(['id' => $id]);
+        $acteursFilm = $requeteActeurs->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+
+// Réponse 404 si le film n'existe pas
+if (!$film) {
+    http_response_code(404);
 }
 ?>
 
 <!doctype html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Détails du film | Bob'ines</title>
+    <title>
+        <?= $film
+            ? htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8')
+            : 'Film introuvable'
+        ?> | Bob'ines
+    </title>
     <link rel="stylesheet" href="./css/common.css">
     <link rel="stylesheet" href="./css/movie.css">
 </head>
@@ -56,8 +90,23 @@ if ($id !== false && $id !== null && $id > 0) {
 
     <?php if (!$film): ?>
 
-        <h1>Film introuvable</h1>
-        <a href="index.php">Retour au catalogue</a>
+        <section class="section_page section_introuvable">
+
+            <h1>Film introuvable</h1>
+
+            <img
+                class="image_introuvable"
+                src="./images/film_introuvable.png"
+                alt="Film introuvable"
+            >
+
+            <p>
+                <a class="lien_retour" href="index.php">
+                    Retour au catalogue
+                </a>
+            </p>
+
+        </section>
 
     <?php else: ?>
 
@@ -72,64 +121,126 @@ if ($id !== false && $id !== null && $id > 0) {
 
         <h1>Fiche du film</h1>
 
+        <!-- Détails du film -->
         <section class="section_page section_film">
 
             <h2 class="titre_section">Détails du film</h2>
 
             <article class="details_film">
 
+                <!-- Affiche du film -->
                 <div class="conteneur_affiche">
+
                     <img
                         class="affiche_details"
-                        src="<?= htmlspecialchars($affiche) ?>"
-                        alt="Affiche de <?= htmlspecialchars($film['titre']) ?>"
+                        src="<?= htmlspecialchars($affiche, ENT_QUOTES, 'UTF-8') ?>"
+                        onerror="this.onerror=null; this.src='./images/affiche_indisponible.png';"
+                        alt="Affiche de <?= htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8') ?>"
                     >
+
                 </div>
 
+                <!-- Informations du film -->
                 <div class="informations_film">
 
                     <h3 class="titre_details_film">
-                        <?= htmlspecialchars($film['titre']) ?>
+                        <?= htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8') ?>
                     </h3>
 
                     <div class="donnees_film">
 
                         <p>
                             <strong>Année de sortie :</strong>
-                            <?= htmlspecialchars((string) $film['annee_de_sortie']) ?>
+                            <?= htmlspecialchars(
+                                (string) $film['annee_de_sortie'],
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
                         </p>
 
                         <p>
                             <strong>Catégorie :</strong>
-                            <?= htmlspecialchars($categorie) ?>
+                            <?= htmlspecialchars($categorie, ENT_QUOTES, 'UTF-8') ?>
                         </p>
 
                         <p>
                             <strong>Réalisateur :</strong>
-                            <?= htmlspecialchars($realisateur) ?>
+
+                            <?php if (!empty($film['id_realisateur'])): ?>
+
+                                <a
+                                    class="lien_realisateur"
+                                    href="director.php?id=<?= (int) $film['id_realisateur'] ?>"
+                                >
+                                    <?= htmlspecialchars($realisateur, ENT_QUOTES, 'UTF-8') ?>
+                                </a>
+
+                            <?php else: ?>
+
+                                <?= htmlspecialchars($realisateur, ENT_QUOTES, 'UTF-8') ?>
+
+                            <?php endif; ?>
+                        </p>
+
+                        <p>
+                            <strong>Acteurs :</strong>
+
+                            <?= !empty($acteursFilm)
+                                ? htmlspecialchars(
+                                    implode(' | ', array_map(
+                                        fn($acteur) => $acteur['prenom'] . ' ' . $acteur['nom'],
+                                        $acteursFilm
+                                    )),
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                )
+                                : 'Aucun acteur renseigné.'
+                            ?>
                         </p>
 
                     </div>
 
+                    <!-- Synopsis -->
                     <div class="synopsis_film">
 
                         <h4>Synopsis</h4>
 
                         <p>
                             <?= !empty($film['resume'])
-                                ? nl2br(htmlspecialchars($film['resume']))
-                                : 'Aucun résumé disponible pour ce film.' ?>
+                                ? nl2br(htmlspecialchars(
+                                    $film['resume'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ))
+                                : 'Aucun résumé disponible pour ce film.'
+                            ?>
                         </p>
 
                     </div>
 
+                    <!-- Achat -->
                     <div class="achat_film">
 
                         <p class="prix_details_film">
-                            <?= number_format((float) $film['prix'], 2, ',', ' ') ?> €
+                            <?= number_format(
+                                (float) $film['prix'],
+                                2,
+                                ',',
+                                ' '
+                            ) ?> €
                         </p>
 
                         <form method="POST" action="cart.php">
+
+                            <input
+                                type="hidden"
+                                name="csrf_token"
+                                value="<?= htmlspecialchars(
+                                    $_SESSION['csrf_token'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ) ?>"
+                            >
 
                             <input
                                 type="hidden"

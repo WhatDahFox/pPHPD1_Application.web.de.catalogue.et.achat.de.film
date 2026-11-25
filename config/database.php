@@ -9,7 +9,7 @@
     $charset="utf8mb4";
 
     $username="bobines";
-    $password="P@ssw0rd!"; // Se trouverais dans .env si projet officiel.
+    $password="P@ssw0rd!";      // Se trouverais dans .env si projet officiel.
 
 /* ========================================
 2. Connexion à la base de données

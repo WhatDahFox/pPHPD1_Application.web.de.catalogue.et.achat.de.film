@@ -336,7 +336,43 @@ input:focus-visible {
 }
 
 /* ========================================
-7. Footer
+7. Gestion des erreurs
+========================================= */
+
+.section_introuvable {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    text-align: center;
+}
+
+.image_introuvable {
+    display: block;
+    width: min(100%, 900px);
+    height: auto;
+    border-radius: 1rem;
+}
+
+.lien_retour {
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--couleur_accent);
+    border-radius: 0.5rem;
+    background-color: var(--couleur_accent);
+    color: var(--fond_carte);
+    font-weight: var(--graisse_semi_grasse);
+    text-decoration: none;
+}
+
+.lien_retour:hover {
+    background-color: var(--fond_carte);
+    color: var(--couleur_accent);
+    text-decoration: none;
+    transform: none;
+}
+
+/* ========================================
+8. Footer
 ========================================= */
 
 .footer {

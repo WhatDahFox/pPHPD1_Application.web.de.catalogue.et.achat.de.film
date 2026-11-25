@@ -1,7 +1,15 @@
 
 <?php
+session_start();
+
 require_once __DIR__ . '/../config/database.php';
 
+// Création du jeton CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Récupération et validation de l'identifiant
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 $realisateur = null;
@@ -20,15 +28,14 @@ if ($id !== false && $id !== null && $id > 0) {
             biographie,
             portrait
         FROM realisateur
-        WHERE id_realisateur = ?
+        WHERE id_realisateur = :id
     ");
 
-    $requete->execute([$id]);
+    $requete->execute(['id' => $id]);
     $realisateur = $requete->fetch(PDO::FETCH_ASSOC);
 
     // Récupération de ses films
     if ($realisateur) {
-
         $requeteFilms = $pdo->prepare("
             SELECT
                 id_film,
@@ -38,13 +45,18 @@ if ($id !== false && $id !== null && $id > 0) {
                 annee_de_sortie,
                 prix
             FROM film
-            WHERE id_realisateur = ?
-            ORDER BY annee_de_sortie DESC
+            WHERE id_realisateur = :id
+            ORDER BY annee_de_sortie DESC, id_film DESC
         ");
 
-        $requeteFilms->execute([$id]);
+        $requeteFilms->execute(['id' => $id]);
         $films = $requeteFilms->fetchAll(PDO::FETCH_ASSOC);
     }
+}
+
+// Réponse 404 si le réalisateur n'existe pas
+if (!$realisateur) {
+    http_response_code(404);
 }
 ?>
 
@@ -68,6 +80,12 @@ if ($id !== false && $id !== null && $id > 0) {
     <?php if (!$realisateur): ?>
 
         <h1>Réalisateur introuvable</h1>
+
+        <img
+            src="./images/realisateur_introuvable.png"
+            alt="Réalisateur introuvable"
+        >
+
         <a href="index.php">Retour au catalogue</a>
 
     <?php else: ?>
@@ -92,22 +110,26 @@ if ($id !== false && $id !== null && $id > 0) {
                 <div class="conteneur_portrait">
                     <img
                         class="portrait_realisateur"
-                        src="<?= htmlspecialchars($portrait) ?>"
-                        alt="Portrait de <?= htmlspecialchars($nomComplet) ?>"
+                        src="<?= htmlspecialchars($portrait, ENT_QUOTES, 'UTF-8') ?>"
+                        alt="Portrait de <?= htmlspecialchars($nomComplet, ENT_QUOTES, 'UTF-8') ?>"
                     >
                 </div>
 
                 <div class="informations_realisateur">
 
                     <h3 class="nom_realisateur">
-                        <?= htmlspecialchars($nomComplet) ?>
+                        <?= htmlspecialchars($nomComplet, ENT_QUOTES, 'UTF-8') ?>
                     </h3>
 
                     <div class="donnees_realisateur">
 
                         <p>
                             <strong>Nationalité :</strong>
-                            <?= htmlspecialchars($realisateur['nationalite'] ?? 'Non renseignée') ?>
+                            <?= htmlspecialchars(
+                                $realisateur['nationalite'] ?? 'Non renseignée',
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
                         </p>
 
                         <p>
@@ -131,7 +153,11 @@ if ($id !== false && $id !== null && $id > 0) {
 
                         <p>
                             <?= !empty($realisateur['biographie'])
-                                ? nl2br(htmlspecialchars($realisateur['biographie']))
+                                ? nl2br(htmlspecialchars(
+                                    $realisateur['biographie'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
+                                ))
                                 : 'Aucune biographie disponible.' ?>
                         </p>
 
@@ -168,25 +194,31 @@ if ($id !== false && $id !== null && $id > 0) {
 
                             <img
                                 class="affiche_film"
-                                src="<?= htmlspecialchars($affiche) ?>"
-                                alt="Affiche de <?= htmlspecialchars($film['titre']) ?>"
+                                src="<?= htmlspecialchars($affiche, ENT_QUOTES, 'UTF-8') ?>"
+                                alt="Affiche de <?= htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8') ?>"
                             >
 
                             <div class="contenu_carte_film">
 
                                 <h3 class="titre_film">
-                                    <?= htmlspecialchars($film['titre']) ?>
+                                    <?= htmlspecialchars($film['titre'], ENT_QUOTES, 'UTF-8') ?>
                                 </h3>
 
                                 <p class="description_film">
                                     <?= htmlspecialchars(
-                                        (string) $film['annee_de_sortie']
+                                        (string) $film['annee_de_sortie'],
+                                        ENT_QUOTES,
+                                        'UTF-8'
                                     ) ?>
                                 </p>
 
                                 <p class="description_film">
                                     <?= !empty($film['resume'])
-                                        ? htmlspecialchars($film['resume'])
+                                        ? htmlspecialchars(
+                                            $film['resume'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        )
                                         : 'Aucun résumé disponible.' ?>
                                 </p>
 
@@ -207,6 +239,16 @@ if ($id !== false && $id !== null && $id > 0) {
                                 </a>
 
                                 <form method="POST" action="cart.php">
+
+                                    <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="<?= htmlspecialchars(
+                                            $_SESSION['csrf_token'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                    >
 
                                     <input
                                         type="hidden"

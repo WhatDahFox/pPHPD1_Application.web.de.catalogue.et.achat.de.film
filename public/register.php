@@ -1,66 +1,91 @@
 
 <?php
+session_start();
 
 $message = "";
 
+// Création du jeton CSRF
+if (empty($_SESSION["csrf_token"])) {
+    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $nom = trim($_POST["nom"] ?? "");
-    $email = trim($_POST["email"] ?? "");
-    $password = $_POST["password"] ?? "";
-    $confirmation = $_POST["confirmation"] ?? "";
+    // Vérification du jeton CSRF
+    $csrf_token = $_POST["csrf_token"] ?? "";
 
-    if (empty($nom) || empty($email) || empty($password) || empty($confirmation)) {
-        $message = "Veuillez remplir tous les champs.";
-
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "Adresse email invalide.";
-
-    } elseif (strlen($password) < 8) {
-        $message = "Le mot de passe doit contenir 8 caractères minimum.";
-
-    } elseif ($password !== $confirmation) {
-        $message = "Les mots de passe sont différents.";
+    if (
+        empty($csrf_token) ||
+        !hash_equals($_SESSION["csrf_token"], $csrf_token)
+    ) {
+        $message = "Formulaire invalide. Veuillez réessayer.";
 
     } else {
 
-        try {
-            require_once __DIR__ . "/../config/database.php";
+        $nom = trim($_POST["nom"] ?? "");
+        $email = trim($_POST["email"] ?? "");
+        $password = $_POST["password"] ?? "";
+        $confirmation = $_POST["confirmation"] ?? "";
 
-            // Vérifier si l'adresse email existe déjà
-            $sql = "SELECT id_utilisateur
-                    FROM utilisateur
-                    WHERE adresse_mail = ?";
+        if (
+            $nom === "" ||
+            $email === "" ||
+            $password === "" ||
+            $confirmation === ""
+        ) {
+            $message = "Veuillez remplir tous les champs.";
 
-            $requete = $pdo->prepare($sql);
-            $requete->execute([$email]);
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = "Adresse email invalide.";
 
-            if ($requete->fetch()) {
-                $message = "Cette adresse email est déjà utilisée.";
+        } elseif (strlen($password) < 8) {
+            $message = "Le mot de passe doit contenir 8 caractères minimum.";
 
-            } else {
+        } elseif ($password !== $confirmation) {
+            $message = "Les mots de passe sont différents.";
 
-                // Sécuriser le mot de passe
-                $hash = password_hash($password, PASSWORD_DEFAULT);
+        } else {
 
-                // Enregistrer le nouvel utilisateur
-                $sql = "INSERT INTO utilisateur (nom, adresse_mail, mdp)
-                        VALUES (?, ?, ?)";
+            try {
+                require_once __DIR__ . "/../config/database.php";
+
+                // Vérifier si l'adresse email existe déjà
+                $sql = "SELECT id_utilisateur
+                        FROM utilisateur
+                        WHERE adresse_mail = ?";
 
                 $requete = $pdo->prepare($sql);
-                $requete->execute([$nom, $email, $hash]);
+                $requete->execute([$email]);
 
-                header("Location: login.php");
-                exit();
+                if ($requete->fetch()) {
+                    $message = "Cette adresse email est déjà utilisée.";
+
+                } else {
+
+                    // Sécuriser le mot de passe
+                    $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                    // Enregistrer le nouvel utilisateur
+                    $sql = "INSERT INTO utilisateur (nom, adresse_mail, mdp)
+                            VALUES (?, ?, ?)";
+
+                    $requete = $pdo->prepare($sql);
+                    $requete->execute([$nom, $email, $hash]);
+
+                    // Renouvellement du jeton CSRF
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+
+                    header("Location: login.php");
+                    exit();
+                }
+
+            } catch (PDOException $e) {
+                error_log($e->getMessage());
+                $message = "Une erreur est survenue lors de l'inscription.";
             }
-
-        } catch (PDOException $e) {
-            error_log($e->getMessage());
-            $message = "Une erreur est survenue lors de l'inscription.";
         }
     }
 }
-
 ?>
 
 <!doctype html>
@@ -91,8 +116,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <h2>Créer un compte</h2>
 
                 <?php if ($message !== ""): ?>
-                    <p><?= htmlspecialchars($message) ?></p>
+                    <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
                 <?php endif; ?>
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
 
                 <div class="champ_inscription">
                     <label for="nom_inscription">Nom</label>
