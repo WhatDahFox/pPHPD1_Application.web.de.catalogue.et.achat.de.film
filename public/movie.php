@@ -1,10 +1,22 @@
 <?php
 
+    // Démarrage de la session PHP
+    session_start();
+
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Connexion PDO
     require_once __DIR__ . "/../config/database.php";
 
     // Récupération de l'identifiant du film via l'URL
-    $idFilm = $_GET["id"] ?? null;
+    $idFilm = filter_input(INPUT_GET, "id", FILTER_VALIDATE_INT);
+
+    if ($idFilm === false || $idFilm === null || $idFilm <= 0) {
+        $idFilm = null;
+    }
 
     // Récupération des informations du film
     $requeteIdFilm = $pdo->prepare(
@@ -124,7 +136,7 @@
                     <div class="donnees_film">
                         <p>
                             <strong> Année de sortie : </strong>
-                            <span> <?php echo $ficheFilm["annee_de_sortie"] ?> </span>
+                            <span> <?php echo (int) $ficheFilm["annee_de_sortie"] ?> </span>
                         </p>
                         <p>
                             <strong> Catégorie : </strong>
@@ -134,8 +146,8 @@
                         </p>
                         <p>
                             <strong> Réalisateur : </strong>
-                            <a class="lien_realisateur" href="director.php?id=<?php echo $ficheFilm["id_realisateur"] ?>">
-                                <?php echo htmlspecialchars($realisateurFilm["prenom"] . " " . $realisateurFilm["nom"]) ?>
+                            <a class="lien_realisateur" href="director.php?id=<?php echo (int) $ficheFilm["id_realisateur"] ?>">
+                                <?php echo htmlspecialchars($realisateurFilm["prenom"] . " " . $realisateurFilm["nom"], ENT_QUOTES, 'UTF-8') ?>
                             </a>
                         </p>
                         <p>
@@ -158,6 +170,11 @@
                     <div class="achat_film">
                         <p class="prix_details_film"> <?php echo number_format((float) $ficheFilm["prix"], 2, ",", " ") ?> € </p>
                         <form action="cart.php" method="post">
+                            <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                            >
                             <input type="hidden" name="id" value="<?= (int) $ficheFilm["id_film"] ?>">
                             <button class="bouton_panier" type="submit" name="ajouter"> Ajouter au panier </button>
                         </form>

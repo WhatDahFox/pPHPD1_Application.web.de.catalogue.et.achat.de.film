@@ -1,22 +1,59 @@
 <?php
 
+    // Démarrage de la session PHP
+    session_start();
+
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Initialisation du message de validation
     $message = "";
 
     // Traitement du formulaire
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
+        // Vérification du jeton CSRF
+        $csrf_token = $_POST["csrf_token"] ?? "";
+
+        if (
+                !is_string($csrf_token) ||
+                $csrf_token === "" ||
+                empty($_SESSION["csrf_token"]) ||
+                !hash_equals($_SESSION["csrf_token"], $csrf_token)
+        ) {
+            http_response_code(403);
+            exit("Requête invalide.");
+        }
+
         // Récupération des données
-        $nom = trim($_POST["nom"] ?? "");
-        $email = trim($_POST["email"] ?? "");
+        $nom = $_POST["nom"] ?? "";
+        $email = $_POST["email"] ?? "";
         $password = $_POST["mdp"] ?? "";
         $confirmation = $_POST["confirmation_mdp"] ?? "";
 
         // Validation des données
-        if ($nom === "" || $email === "" || $password === "" || $confirmation === "") {
+        if (
+                !is_string($nom) ||
+                !is_string($email) ||
+                !is_string($password) ||
+                !is_string($confirmation)
+        ) {
+            $message = "Les données envoyées sont invalides.";
+
+        } elseif (
+                mb_strlen(trim($nom)) > 50 ||
+                strlen(trim($email)) > 254 ||
+                strlen($password) > 72 ||
+                strlen($confirmation) > 72
+        ) {
+            $message = "Certaines informations sont trop longues.";
+
+        } elseif (trim($nom) === "" || trim($email) === "" || $password === "" || $confirmation === "") {
             $message = "Veuillez remplir tous les champs.";
 
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        } elseif (!filter_var(trim($email), FILTER_VALIDATE_EMAIL)) {
             $message = "Adresse email invalide.";
 
         } elseif (strlen($password) < 8) {
@@ -26,6 +63,9 @@
             $message = "Les mots de passe sont différents.";
 
         } else {
+
+            $nom = trim($nom);
+            $email = trim($email);
 
             try {
                 // Connexion PDO
@@ -53,6 +93,9 @@
 
                     $requete = $pdo->prepare($sql);
                     $requete->execute([$nom, $email, $hash]);
+
+                    // Renouvellement du jeton CSRF
+                    $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
 
                     header("Location: login.php");
                     exit();
@@ -95,6 +138,11 @@
                 action="register.php"
                 method="post"
             >
+                <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                >
                 <h2> Créer un compte </h2>
                 <?php if ($message !== ""): ?>
                     <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>

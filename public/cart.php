@@ -3,6 +3,11 @@
     // Démarrage de la session PHP
     session_start();
 
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Vérification de la connexion
     if (!isset($_SESSION["utilisateur"]["id_utilisateur"])) {
         header("Location: login.php");
@@ -39,6 +44,22 @@
         error_log($e->getMessage());
         http_response_code(500);
         exit("Impossible de récupérer le panier.");
+    }
+
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+        // Vérification du jeton CSRF
+        $csrf_token = $_POST["csrf_token"] ?? "";
+
+        if (
+                !is_string($csrf_token) ||
+                $csrf_token === "" ||
+                empty($_SESSION["csrf_token"]) ||
+                !hash_equals($_SESSION["csrf_token"], $csrf_token)
+        ) {
+            http_response_code(403);
+            exit("Requête invalide.");
+        }
     }
 
     // Ajout d'un film au panier
@@ -166,6 +187,38 @@
                 // Démarrage de la transaction
                 $pdo->beginTransaction();
 
+                // Récupération et verrouillage des films du panier
+                $sql = "SELECT film.id_film, film.prix, contient.quantite
+                            FROM contient
+                            INNER JOIN film ON contient.id_film = film.id_film
+                            WHERE contient.id_panier = ?
+                            FOR UPDATE";
+
+                $requete = $pdo->prepare($sql);
+                $requete->execute([$idPanier]);
+
+                $filmsCommande = $requete->fetchAll(PDO::FETCH_ASSOC);
+
+                if (empty($filmsCommande)) {
+                    throw new Exception("Le panier est vide.");
+                }
+
+                // Vérification des quantités et des prix
+                foreach ($filmsCommande as $film) {
+                    $quantite = (int) $film["quantite"];
+                    $prix = (float) $film["prix"];
+
+                    if (
+                            $quantite < 1 ||
+                            $quantite > 127 ||
+                            !is_numeric($film["prix"]) ||
+                            !is_finite($prix) ||
+                            $prix < 0
+                    ) {
+                        throw new Exception("Informations du panier invalides.");
+                    }
+                }
+
                 // Création de la commande
                 $sql = "INSERT INTO commande (date_commande, id_utilisateur)
                         VALUES (NOW(), ?)";
@@ -182,7 +235,7 @@
 
                 $requete = $pdo->prepare($sql);
 
-                foreach ($filmsPanier as $film) {
+                foreach ($filmsCommande as $film) {
 
                     $requete->execute([
                             $film["id_film"],
@@ -205,7 +258,7 @@
                 header("Location: cart.php?achat=ok");
                 exit();
 
-            } catch (PDOException $e) {
+            } catch (Throwable $e) {
 
                 // Annulation de l'ensemble de la transaction
                 if ($pdo->inTransaction()) {
@@ -295,6 +348,11 @@
                                     <?= number_format((float) $film["prix"] * (int) $film["quantite"], 2, ",", " ") ?> €
                                 </p>
                                 <form action="cart.php" method="post">
+                                    <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                                    >
                                     <input type="hidden" name="id" value="<?= (int) $film["id_film"] ?>">
                                     <button class="bouton_supprimer" type="submit" name="supprimer"> Supprimer </button>
                                 </form>
@@ -305,6 +363,11 @@
             </div>
             <?php if (!empty($filmsPanier)): ?>
                 <form action="cart.php" method="post">
+                    <input
+                            type="hidden"
+                            name="csrf_token"
+                            value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                    >
                     <button class="bouton_supprimer" type="submit" name="vider"> Vider le panier </button>
                 </form>
             <?php endif; ?>
@@ -322,6 +385,11 @@
                             <span> <?= number_format($totalPanier, 2, ",", " ") ?> € </span>
                         </p>
                         <form action="cart.php" method="post">
+                            <input
+                                    type="hidden"
+                                    name="csrf_token"
+                                    value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                            >
                             <button
                                     class="bouton_valider"
                                     type="submit"

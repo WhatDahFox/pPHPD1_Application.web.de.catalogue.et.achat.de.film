@@ -1,5 +1,13 @@
 <?php
 
+    // Démarrage de la session PHP
+    session_start();
+
+    // Création du jeton CSRF
+    if (empty($_SESSION["csrf_token"])) {
+        $_SESSION["csrf_token"] = bin2hex(random_bytes(32));
+    }
+
     // Connexion PDO
     require_once __DIR__ . "/../config/database.php";
 
@@ -59,16 +67,21 @@
                              alt="affiche du film <?php echo htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?>"
                         >
                         <div class="contenu_carte_film">
-                            <h3 class="titre_film"> <?php echo htmlspecialchars($film["titre"]) ?> </h3>
-                            <p class="description_film"> <?php echo htmlspecialchars($film["resume"]) ?> </p>
+                            <h3 class="titre_film"> <?php echo htmlspecialchars($film["titre"], ENT_QUOTES, 'UTF-8') ?> </h3>
+                            <p class="description_film"> <?php echo htmlspecialchars($film["resume"], ENT_QUOTES, 'UTF-8') ?> </p>
                             <p class="prix_film"> <?php echo number_format((float) $film["prix"], 2, ",", " ") ?> € </p>
                             <a
                                 class="lien_details_film"
-                                href="movie.php?id=<?php echo $film["id_film"] ?>"
+                                href="movie.php?id=<?php echo (int) $film["id_film"] ?>"
                             >
                                 Voir les détails du film
                             </a>
                             <form action="cart.php" method="post">
+                                <input
+                                        type="hidden"
+                                        name="csrf_token"
+                                        value="<?= htmlspecialchars($_SESSION["csrf_token"], ENT_QUOTES, 'UTF-8') ?>"
+                                >
                                 <input type="hidden" name="id" value="<?= (int) $film["id_film"] ?>">
                                 <button class="bouton_panier" type="submit" name="ajouter"> Ajouter au panier </button>
                             </form>

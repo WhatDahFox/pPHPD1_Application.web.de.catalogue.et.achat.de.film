@@ -32,12 +32,17 @@ Requête dans heidiSQL :
 
 
 	CREATE USER 'bobines'@'localhost'
-	IDENTIFIED BY 'P@ssw0rd!';
+	IDENTIFIED BY 'VotreMotDePasse';
 
 	GRANT SELECT, INSERT, UPDATE, DELETE
 	ON bobines.\*
 	TO 'bobines'@'localhost';
 
+4. ###### Configurer la connexion à la base de données
+
+* Copier le fichier `.env.test` et le renommer en `.env`.
+* Renseigner les paramètres de connexion à MySQL.
+* Utiliser le mot de passe défini lors de la création de l'utilisateur MySQL.
 
 
 
